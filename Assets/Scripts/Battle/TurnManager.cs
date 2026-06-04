@@ -8,6 +8,8 @@ namespace GameAssets.Battle
 {
   public class TurnManager : MonoBehaviour
   {
+    public static TurnManager Instance { get; private set; }
+    
     [SerializeField] private HealthSystemManager healthManager;
 
     [Header("Timing")]
@@ -25,8 +27,21 @@ namespace GameAssets.Battle
     private readonly Dictionary<int, int> pendingDamage = new();
     private bool resolving;
 
+    private void Awake()
+    {
+      if (Instance == null)
+      {
+        Instance = this;
+      }
+      else
+      {
+        Destroy(gameObject);
+      }
+    }
+
     private void Start()
     {
+      
       if (healthManager == null)
         healthManager = FindFirstObjectByType<HealthSystemManager>();
 
