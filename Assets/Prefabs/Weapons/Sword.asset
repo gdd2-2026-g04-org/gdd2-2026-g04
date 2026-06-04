@@ -15,7 +15,5 @@ MonoBehaviour:
   weaponName: Sword
   damage: 10
   minSpeedForTrail: 3
-  minSpeedForSound: 4
-  minSpeedForDamage: 3
+  minSpeedForSound: 3
   soundCooldown: 0.4
-  damageCooldown: 0.5
