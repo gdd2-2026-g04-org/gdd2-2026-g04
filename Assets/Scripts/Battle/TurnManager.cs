@@ -13,8 +13,8 @@ namespace GameAssets.Battle
     [SerializeField] private HealthSystemManager healthManager;
 
     [Header("Timing")]
-    [SerializeField] private float breakAfterAllSwings = 3.0f;
-    [SerializeField] private float breakAfterBoss = 3.0f;
+    [SerializeField] private float breakAfterAllSwings = 0.2f;
+    [SerializeField] private float breakAfterBoss = 0.2f;
 
     [Header("Boss")]
     [SerializeField] private int bossAttackDamage = 5;

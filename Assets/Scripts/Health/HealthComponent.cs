@@ -22,7 +22,7 @@ public virtual void TakeDamage(int damage)
     PlayerHealth player = this as PlayerHealth;
     if (player != null)
     {
-        Shield activeShield = FindObjectOfType<Shield>();
+        Shield activeShield = FindFirstObjectByType<Shield>();
         if (activeShield != null && activeShield.isHeld)
         {
             Debug.Log("Shield blocked the damage!");

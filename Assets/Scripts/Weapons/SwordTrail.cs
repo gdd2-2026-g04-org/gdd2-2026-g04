@@ -1,3 +1,4 @@
+using System;
 using GameAssets.Battle;
 using GameAssets.Health;
 using UnityEngine;
@@ -15,6 +16,7 @@ public class SwordTrail : MonoBehaviour
 
   [Header("Trail")]
   [SerializeField] private TrailRenderer trailRenderer;
+  [SerializeField] private float trailDelay = 0.2f;
 
   [Header("Sound")]
   [SerializeField] private AudioSource audioSource;
@@ -24,28 +26,55 @@ public class SwordTrail : MonoBehaviour
   private float currentSpeed;
   private float lastSoundTime;
   private bool wasSwinging;
+  private bool wasTrailing;
   private TurnManager turnManager;
+
+  private void Awake()
+  {
+    if (trailRenderer != null)
+    {
+      trailRenderer.emitting = false;
+      trailRenderer.Clear();
+    }
+  }
 
   private void Start()
   {
     lastPosition = transform.position;
-    turnManager = FindFirstObjectByType<TurnManager>();
+    turnManager = TurnManager.Instance;
 
     if (playerHealth == null)
       playerHealth = GetComponentInParent<PlayerHealth>();
   }
 
-  private void Update()
+  private void LateUpdate()
   {
-    if (weapon == null) return;
+    if (weapon == null || trailRenderer == null) return;
 
     currentSpeed = (transform.position - lastPosition).magnitude / Time.deltaTime;
     lastPosition = transform.position;
 
     bool isSwinging = currentSpeed > weapon.minSpeedForTrail;
+    
+    trailRenderer.emitting = isSwinging;
 
-    if (trailRenderer != null)
-      trailRenderer.emitting = isSwinging;
+    if (isSwinging) lastSoundTime = Time.time;
+
+    bool shouldTrail = Time.time <= lastSoundTime + trailDelay;
+
+    if (isSwinging && !wasSwinging)
+    {
+      var damage = weapon.damage + (playerHealth != null ? playerHealth.Damage : 0);
+      Debug.Log($"[Sword] Player {playerIndex} swings — weapon: {weapon.weaponName}, total damage: {damage}");
+      turnManager?.OnPlayerSwing(playerIndex, damage);
+    }
+    
+    trailRenderer.emitting = shouldTrail;
+
+    if (!shouldTrail && wasTrailing)
+    {
+      trailRenderer.emitting = false;
+    }
 
     if (isSwinging && Time.time > lastSoundTime + weapon.soundCooldown)
     {
@@ -55,15 +84,9 @@ public class SwordTrail : MonoBehaviour
         lastSoundTime = Time.time;
       }
     }
-
-    if (isSwinging && !wasSwinging)
-    {
-      int damage = weapon.damage + (playerHealth != null ? playerHealth.Damage : 0);
-      Debug.Log($"[Sword] Player {playerIndex} swings — weapon: {weapon.weaponName}, total damage: {damage}");
-      turnManager?.OnPlayerSwing(playerIndex, damage);
-    }
-
+    
     wasSwinging = isSwinging;
+    wasTrailing = shouldTrail;
   }
 }
 }
