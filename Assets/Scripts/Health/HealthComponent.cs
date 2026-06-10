@@ -17,13 +17,28 @@ namespace GameAssets.Health
 
     protected virtual void Awake() => CurrentHP = maxHP;
 
-    public virtual void TakeDamage(int damage)
+public virtual void TakeDamage(int damage)
+{
+    PlayerHealth player = this as PlayerHealth;
+    if (player != null)
     {
-      if (!IsAlive || damage <= 0) return;
-      CurrentHP = Mathf.Max(0, CurrentHP - damage);
-      OnHealthChanged?.Invoke(CurrentHP, maxHP);
-      if (CurrentHP <= 0) OnDeath?.Invoke();
+        Shield activeShield = FindFirstObjectByType<Shield>();
+        if (activeShield != null && activeShield.isHeld)
+        {
+            Debug.Log("Shield blocked the damage!");
+            return;
+        }
     }
+
+    if (!IsAlive || damage <= 0) return;
+    CurrentHP = Mathf.Max(0, CurrentHP - damage);
+    OnHealthChanged?.Invoke(CurrentHP, maxHP);
+    if (CurrentHP <= 0)
+    {
+        OnDeath?.Invoke();
+        Debug.Log("Player died!");
+    }
+}
 
     public virtual void Heal(int amount)
     {

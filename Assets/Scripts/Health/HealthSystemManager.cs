@@ -44,8 +44,8 @@ namespace GameAssets.Health
 
     public void ApplyDamageToAllPlayers(int damage)
     {
-      foreach (PlayerHealth p in players)
-        if (p.IsAlive) p.TakeDamage(damage);
+      foreach (PlayerHealth p in players) if (p.IsAlive) p.TakeDamage(damage);
+      CheckPartyWipe();
     }
 
     public void ApplyDamageToPlayer(PlayerHealth player, int damage)

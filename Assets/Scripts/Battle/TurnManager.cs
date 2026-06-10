@@ -12,9 +12,11 @@ namespace GameAssets.Battle
     
     [SerializeField] private HealthSystemManager healthManager;
 
+    [SerializeField] private GameOverUI gameOverUI;
+    
     [Header("Timing")]
-    [SerializeField] private float breakAfterAllSwings = 3.0f;
-    [SerializeField] private float breakAfterBoss = 3.0f;
+    [SerializeField] private float breakAfterAllSwings = 0.2f;
+    [SerializeField] private float breakAfterBoss = 0.2f;
 
     [Header("Boss")]
     [SerializeField] private int bossAttackDamage = 5;
@@ -26,6 +28,7 @@ namespace GameAssets.Battle
 
     private readonly Dictionary<int, int> pendingDamage = new();
     private bool resolving;
+    private bool gameOver;
 
     private void Awake()
     {
@@ -45,8 +48,16 @@ namespace GameAssets.Battle
       if (healthManager == null)
         healthManager = FindFirstObjectByType<HealthSystemManager>();
 
-      healthManager.OnEncounterVictory += () => Debug.Log("[Turn] VICTORY! Boss defeated.");
-      healthManager.OnPartyWipe += () => Debug.Log("[Turn] GAME OVER. Party wiped.");
+      healthManager.OnEncounterVictory += () =>
+      {
+        Debug.Log("[Turn] VICTORY! Boss defeated.");
+        GameOver();
+      };
+      healthManager.OnPartyWipe += () =>
+      {
+        Debug.Log("[Turn] GAME OVER. Party wiped.");
+        GameOver();
+      };
 
       StartCoroutine(StartEncounter());
     }
@@ -63,6 +74,8 @@ namespace GameAssets.Battle
 
     public void OnPlayerSwing(int playerIndex, int damage)
     {
+      if (gameOver) return;
+      
       if (!IsPlayerTurn)
       {
         Debug.Log("[Turn] Swing ignored — not player's turn.");
@@ -110,11 +123,17 @@ namespace GameAssets.Battle
 
       healthManager.ApplyDamageToAllPlayers(bossAttackDamage);
       Debug.Log($"[Turn] Boss attacks for {bossAttackDamage} damage.");
-
+      
       resolving = false;
       IsPlayerTurn = true;
       OnPlayerTurnStart?.Invoke();
       Debug.Log($"[Turn] Player's turn. Waiting for {healthManager.AlivePlayerCount} player(s) to act.");
+    }
+
+    private void GameOver()
+    {
+      gameOver = true;
+      gameOverUI.ShowGameOverScreen();
     }
   }
 }
