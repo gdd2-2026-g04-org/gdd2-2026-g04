@@ -33,7 +33,11 @@ public virtual void TakeDamage(int damage)
     if (!IsAlive || damage <= 0) return;
     CurrentHP = Mathf.Max(0, CurrentHP - damage);
     OnHealthChanged?.Invoke(CurrentHP, maxHP);
-    if (CurrentHP <= 0) OnDeath?.Invoke();
+    if (CurrentHP <= 0)
+    {
+        OnDeath?.Invoke();
+        Debug.Log("Player died!");
+    }
 }
 
     public virtual void Heal(int amount)
