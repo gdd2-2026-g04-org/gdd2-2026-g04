@@ -22,12 +22,18 @@ public class SwordTrail : MonoBehaviour
   [SerializeField] private AudioSource audioSource;
   [SerializeField] private AudioClip swingSound;
 
+  [Header("Combat Settings")]
+  [SerializeField] private float attackCooldown = 1.5f;
+
   private Vector3 lastPosition;
   private float currentSpeed;
   private float lastSoundTime;
+  private float lastAttackTime;
   private bool wasSwinging;
   private bool wasTrailing;
+
   private TurnManager turnManager;
+  private HealthSystemManager healthManager;
 
   private void Awake()
   {
@@ -42,6 +48,7 @@ public class SwordTrail : MonoBehaviour
   {
     lastPosition = transform.position;
     turnManager = TurnManager.Instance;
+    healthManager = FindFirstObjectByType<HealthSystemManager>();
 
     if (playerHealth == null)
       playerHealth = GetComponentInParent<PlayerHealth>();
@@ -61,19 +68,39 @@ public class SwordTrail : MonoBehaviour
     if (isSwinging) lastSoundTime = Time.time;
 
     bool shouldTrail = Time.time <= lastSoundTime + trailDelay;
-
-    if (isSwinging && !wasSwinging)
-    {
-      var damage = weapon.damage + (playerHealth != null ? playerHealth.Damage : 0);
-      Debug.Log($"[Sword] Player {playerIndex} swings — weapon: {weapon.weaponName}, total damage: {damage}");
-      turnManager?.OnPlayerSwing(playerIndex, damage);
-    }
-    
     trailRenderer.emitting = shouldTrail;
 
     if (!shouldTrail && wasTrailing)
     {
-      trailRenderer.emitting = false;
+        trailRenderer.emitting = false;
+    }
+
+    // === SWING DETECTION + IMMEDIATE DAMAGE + COOLDOWN ===
+    if (isSwinging && !wasSwinging)
+    {
+        // Only allow attack during player turn
+        if (turnManager != null && turnManager.IsPlayerTurn)
+        {
+            // Check cooldown
+            if (Time.time >= lastAttackTime + attackCooldown)
+            {
+                int damage = weapon.damage + (playerHealth != null ? playerHealth.Damage : 0);
+
+                // === IMMEDIATE DAMAGE ===
+                if (healthManager != null)
+                {
+                    healthManager.ApplyDamageToBoss(damage);
+                }
+
+                Debug.Log($"[Sword] Player {playerIndex} swings for {damage} damage (IMMEDIATE)");
+
+                lastAttackTime = Time.time; // Start cooldown
+            }
+            else
+            {
+                Debug.Log($"[Sword] Player {playerIndex} attack on cooldown");
+            }
+        }
     }
 
     if (isSwinging && Time.time > lastSoundTime + weapon.soundCooldown)

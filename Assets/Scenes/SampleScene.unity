@@ -970,6 +970,7 @@ MonoBehaviour:
   trailDelay: 0.04
   audioSource: {fileID: 0}
   swingSound: {fileID: 0}
+  attackCooldown: 1.5
 --- !u!1 &143237140
 GameObject:
   m_ObjectHideFlags: 0
@@ -2301,6 +2302,7 @@ MonoBehaviour:
   trailDelay: 0.04
   audioSource: {fileID: 0}
   swingSound: {fileID: 0}
+  attackCooldown: 1.5
 --- !u!1 &302166044
 GameObject:
   m_ObjectHideFlags: 0
@@ -4069,7 +4071,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7247,7 +7249,7 @@ MonoBehaviour:
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
-  m_SelectMode: 1
+  m_SelectMode: 0
   m_FocusMode: 1
   m_CustomReticle: {fileID: 0}
   m_AllowGazeInteraction: 0
@@ -7978,6 +7980,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b3a3320867791541a685da32fccb5fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAnimation
+--- !u!114 &814447923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 814447914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 761f05fba002e1fbe8a40ee600e70476, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  attackInterval: 5
+  attackDamage: 1
+  damageDelay: 1
 --- !u!1 &814950858
 GameObject:
   m_ObjectHideFlags: 0
@@ -14575,7 +14592,7 @@ Transform:
   m_GameObject: {fileID: 1681486622}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 0}
+  m_LocalPosition: {x: 0.3, y: 0.1, z: -0}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -16875,6 +16892,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4612056847837555824, guid: 9d90161ec9ad84866bc22f504832630a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 814447920}
+    - targetCorrespondingSourceObject: {fileID: 4612056847837555824, guid: 9d90161ec9ad84866bc22f504832630a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 814447923}
   m_SourcePrefab: {fileID: 100100000, guid: 9d90161ec9ad84866bc22f504832630a, type: 3}
 --- !u!1 &1999169001
 GameObject:
@@ -17074,7 +17094,7 @@ MonoBehaviour:
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
-  m_SelectMode: 1
+  m_SelectMode: 0
   m_FocusMode: 1
   m_CustomReticle: {fileID: 0}
   m_AllowGazeInteraction: 0
