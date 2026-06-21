@@ -23,10 +23,10 @@ public virtual void TakeDamage(int damage)
     if (player != null)
     {
         Shield activeShield = FindFirstObjectByType<Shield>();
-        if (activeShield != null && activeShield.isHeld)
+        if (activeShield != null && activeShield.isHeld && activeShield.isRaised)
         {
-            Debug.Log("Shield blocked the damage!");
-            return;
+            damage = Mathf.RoundToInt(damage * 0.5f);   // 50% damage reduction
+            Debug.Log($"Shield raised! Damage reduced to {damage}");
         }
     }
 
