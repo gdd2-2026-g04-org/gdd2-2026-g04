@@ -17347,7 +17347,7 @@ MonoBehaviour:
   trailDelay: 0.2
   audioSource: {fileID: 2018689683}
   swingSound: {fileID: 8300000, guid: 2e3cfd8a4cd1afe40b6ddda869151d13, type: 3}
-  attackCooldown: 1.5
+  attackCooldown: 1
 --- !u!1 &2026382144
 GameObject:
   m_ObjectHideFlags: 0

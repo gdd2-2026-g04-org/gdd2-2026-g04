@@ -23,7 +23,7 @@ public class SwordTrail : MonoBehaviour
   [SerializeField] private AudioClip swingSound;
 
   [Header("Combat Settings")]
-  [SerializeField] private float attackCooldown = 1.5f;
+  [SerializeField] private float attackCooldown = 1.0f;
 
   private Vector3 lastPosition;
   private float currentSpeed;
@@ -31,6 +31,8 @@ public class SwordTrail : MonoBehaviour
   private float lastAttackTime;
   private bool wasSwinging;
   private bool wasTrailing;
+  private float lastTrailTime;
+  private float lastSwingSoundTime;
 
   private TurnManager turnManager;
   private HealthSystemManager healthManager;
@@ -56,64 +58,65 @@ public class SwordTrail : MonoBehaviour
 
   private void LateUpdate()
   {
-    if (weapon == null || trailRenderer == null) return;
+      if (weapon == null || trailRenderer == null) return;
 
-    currentSpeed = (transform.position - lastPosition).magnitude / Time.deltaTime;
-    lastPosition = transform.position;
+      currentSpeed = (transform.position - lastPosition).magnitude / Time.deltaTime;
+      lastPosition = transform.position;
 
-    bool isSwinging = currentSpeed > weapon.minSpeedForTrail;
-    
-    trailRenderer.emitting = isSwinging;
+      bool isSwinging = currentSpeed > weapon.minSpeedForTrail;
+      bool canAttack = Time.time >= lastAttackTime + attackCooldown;
+      bool isValidSwing = isSwinging && canAttack;
 
-    if (isSwinging) lastSoundTime = Time.time;
-
-    bool shouldTrail = Time.time <= lastSoundTime + trailDelay;
-    trailRenderer.emitting = shouldTrail;
-
-    if (!shouldTrail && wasTrailing)
-    {
-        trailRenderer.emitting = false;
-    }
-
-    // === SWING DETECTION + IMMEDIATE DAMAGE + COOLDOWN ===
-    if (isSwinging && !wasSwinging)
-    {
-        // Only allow attack during player turn
-        if (turnManager != null && turnManager.IsPlayerTurn)
-        {
-            // Check cooldown
-            if (Time.time >= lastAttackTime + attackCooldown)
-            {
-                int damage = weapon.damage + (playerHealth != null ? playerHealth.Damage : 0);
-
-                // === IMMEDIATE DAMAGE ===
-                if (healthManager != null)
-                {
-                    healthManager.ApplyDamageToBoss(damage);
-                }
-
-                Debug.Log($"[Sword] Player {playerIndex} swings for {damage} damage (IMMEDIATE)");
-
-                lastAttackTime = Time.time; // Start cooldown
-            }
-            else
-            {
-                Debug.Log($"[Sword] Player {playerIndex} attack on cooldown");
-            }
-        }
-    }
-
-    if (isSwinging && Time.time > lastSoundTime + weapon.soundCooldown)
-    {
-      if (audioSource != null && swingSound != null)
+      // === TRAIL (uses its own timer) ===
+      if (isValidSwing)
       {
-        audioSource.PlayOneShot(swingSound);
-        lastSoundTime = Time.time;
+          lastTrailTime = Time.time;           // ← Separate timer for trail
       }
-    }
-    
-    wasSwinging = isSwinging;
-    wasTrailing = shouldTrail;
+
+      bool shouldTrail = Time.time <= lastTrailTime + trailDelay;
+      trailRenderer.emitting = shouldTrail && canAttack;
+
+      if (!shouldTrail && wasTrailing)
+      {
+          trailRenderer.emitting = false;
+      }
+
+      // === DAMAGE + COOLDOWN ===
+      if (isSwinging && !wasSwinging)
+      {
+          if (turnManager != null && turnManager.IsPlayerTurn)
+          {
+              if (canAttack)
+              {
+                  int damage = weapon.damage + (playerHealth != null ? playerHealth.Damage : 0);
+
+                  if (healthManager != null)
+                  {
+                      healthManager.ApplyDamageToBoss(damage);
+                  }
+
+                  Debug.Log($"[Sword] Player {playerIndex} swings for {damage} damage (IMMEDIATE)");
+                  lastAttackTime = Time.time;
+              }
+              else
+              {
+                  Debug.Log($"[Sword] Player {playerIndex} attack on cooldown");
+              }
+          }
+      }
+
+      // === SOUND (plays together with trail) ===
+      if (isValidSwing && Time.time > lastSwingSoundTime + weapon.soundCooldown)
+      {
+          if (audioSource != null && swingSound != null)
+          {
+              audioSource.PlayOneShot(swingSound);
+              lastSwingSoundTime = Time.time;
+          }
+      }
+
+      wasSwinging = isSwinging;
+      wasTrailing = shouldTrail;
   }
 }
 }
