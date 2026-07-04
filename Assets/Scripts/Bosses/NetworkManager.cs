@@ -1,72 +1,45 @@
-using UnityEngine;
+using System.Collections.Generic;
 using Fusion;
+using Fusion.Sockets;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class NetworkManager : MonoBehaviour
+public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] private NetworkRunner networkRunnerPrefab;
     [SerializeField] private NetworkPrefabRef playerPrefab;
 
-    private static bool _hasStarted = false;
+    private NetworkRunner runner;
 
     private async void Start()
     {
-        if (_hasStarted) return;
-        _hasStarted = true;
-
         if (networkRunnerPrefab == null || !playerPrefab.IsValid)
         {
             Debug.LogError("Missing NetworkRunner Prefab or Player Prefab!");
             return;
         }
 
-        var runner = Instantiate(networkRunnerPrefab);
+        runner = Instantiate(networkRunnerPrefab);
+        runner.name = "NetworkRunner";
         DontDestroyOnLoad(runner.gameObject);
 
-        string roomName = "FinalStandRoom_" + Random.Range(1000, 9999);
+        runner.AddCallbacks(this);
+        runner.ProvideInput = true;
 
-        var result = await runner.StartGame(new StartGameArgs()
+        string roomName = "FinalStandRoom";
+
+        var result = await runner.StartGame(new StartGameArgs
         {
-            GameMode = GameMode.Host,
+            GameMode = GameMode.Shared,
             SessionName = roomName,
-            Scene = SceneRef.FromIndex(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex),
+            Scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex),
             SceneManager = runner.GetComponent<NetworkSceneManagerDefault>()
         });
 
         if (result.Ok)
         {
-            Debug.Log($"✅ Successfully started as Host! Room: {roomName}");
-
-            if (runner.IsServer)
-            {
-                if (!playerPrefab.IsValid)
-                {
-                    Debug.LogError("playerPrefab is INVALID!");
-                    return;
-                }
-
-                // Clean world position in front of the player
-                Vector3 spawnPos = new Vector3(0, 2f, 5f);
-
-                Debug.Log($"[HOST SPAWN] Spawning at: {spawnPos}");
-
-                var spawned = runner.Spawn(playerPrefab, spawnPos, Quaternion.identity, runner.LocalPlayer);
-
-                if (spawned != null)
-                {
-                    Debug.Log("✅ Spawn succeeded!");
-
-                    spawned.gameObject.name = "TEST_PLAYER_CUBE_VISIBLE";
-
-                    // Do NOT parent it (causes transform corruption with NetworkTransform)
-                    // Do NOT change scale here — change it on the prefab instead if needed
-
-                    var mr = spawned.GetComponent<MeshRenderer>();
-                    if (mr != null)
-                    {
-                        mr.material.color = Color.magenta;
-                    }
-                }
-            }
+            Debug.Log($"✅ Successfully started Fusion Shared Mode. Room: {roomName}");
+            Debug.Log($"Local Player: {runner.LocalPlayer}");
         }
         else
         {
@@ -76,11 +49,98 @@ public class NetworkManager : MonoBehaviour
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (runner.IsServer && playerPrefab.IsValid)
+        Debug.Log($"[JOIN] Player joined: {player}, Local Player: {runner.LocalPlayer}");
+
+        // In Shared Mode, each client spawns only its own local player object.
+        if (player != runner.LocalPlayer)
+            return;
+
+        if (!playerPrefab.IsValid)
         {
-            Vector3 spawnPos = new Vector3(0, 3f, 0);
-            Debug.Log($"[JOINED SPAWN] Spawning for {player} at: {spawnPos}");
-            runner.Spawn(playerPrefab, spawnPos, Quaternion.identity, player);   // ← Fixed: use 'player'
+            Debug.LogError("Player prefab is invalid!");
+            return;
+        }
+
+        Vector3 spawnPos = GetSpawnPosition(player);
+
+        Debug.Log($"[SPAWN] Spawning local player {player} at {spawnPos}");
+
+        NetworkObject spawned = runner.Spawn(
+            playerPrefab,
+            spawnPos,
+            Quaternion.identity,
+            player
+        );
+
+        if (spawned != null)
+        {
+            runner.SetPlayerObject(player, spawned);
+            spawned.gameObject.name = $"NetworkPlayer_Local_{player.PlayerId}";
+
+            Debug.Log($"✅ Spawn succeeded for local player {player}");
+            Debug.Log($"Input Authority: {spawned.InputAuthority}");
+            Debug.Log($"State Authority: {spawned.StateAuthority}");
+        }
+        else
+        {
+            Debug.LogError($"❌ Spawn failed for local player {player}");
         }
     }
+
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        Debug.Log($"[LEFT] Player left: {player}");
+
+        NetworkObject playerObject = runner.GetPlayerObject(player);
+
+        if (playerObject != null && playerObject.HasStateAuthority)
+        {
+            runner.Despawn(playerObject);
+        }
+    }
+
+    private Vector3 GetSpawnPosition(PlayerRef player)
+    {
+        int id = player.PlayerId;
+
+        return new Vector3(
+            id * 2f,
+            2f,
+            5f
+        );
+    }
+
+    public void OnInput(NetworkRunner runner, NetworkInput input) {}
+
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) {}
+
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) {}
+
+    public void OnConnectedToServer(NetworkRunner runner) {}
+
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) {}
+
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) {}
+
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) {}
+
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) {}
+
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) {}
+
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) {}
+
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) {}
+
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, System.ArraySegment<byte> data) {}
+
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) {}
+
+    public void OnSceneLoadDone(NetworkRunner runner) {}
+
+    public void OnSceneLoadStart(NetworkRunner runner) {}
+
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) {}
+
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) {}
 }
