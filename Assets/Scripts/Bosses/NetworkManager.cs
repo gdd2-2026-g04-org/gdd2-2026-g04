@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
@@ -154,6 +155,78 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
     }
 
+    private IEnumerator SetupArenaDelay()
+    {
+        while (!PlayerSpawns.Instance) yield return null;
+        SetupArena();
+    }
+
+    private void SetupArena()
+    {
+        if (!PlayerSpawns.Instance)
+        {
+            Debug.LogError("(NetworkManager): Cannot setup arena, no PlayerSpawns instance found.");
+            return;
+        }
+
+        var playerCount = runner.ActivePlayers.Count();
+        
+        PlayerSpawns.Instance.SetActivePlayerCount(playerCount);
+        
+        PositionPlayer();
+    }
+
+    private int GetLocalPlayerSlot()
+    {
+        if (!runner) return -1;
+
+        var players = runner.ActivePlayers.OrderBy(player => player.PlayerId).ToList();
+
+        return players.FindIndex(player => player == runner.LocalPlayer);
+    }
+
+    private void PositionPlayer()
+    {
+        if (!PlayerSpawns.Instance)
+        {
+            Debug.LogError("(NetworkManager): Cannot position player, no PlayerSpawns instance found.");
+            return;
+        }
+
+        var slotIndex = GetLocalPlayerSlot();
+
+        if (slotIndex < 0)
+        {
+            Debug.LogError("(NetworkManager): Could not determine local player slot.");
+            return;
+        }
+
+        var spawnPoint = PlayerSpawns.Instance.GetSpawnPoint(slotIndex);
+
+        if (!spawnPoint)
+        {
+            Debug.LogError($"(NetworkManager): Could not find spawn point for slot {slotIndex}");
+            return;
+        }
+
+        if (!XRReferences.Instance)
+        {
+            Debug.LogError("(NetworkManager): Could not find XRReferences instance.");
+            return;
+        }
+
+        var xrOrigin = XRReferences.Instance.GetComponent<Unity.XR.CoreUtils.XROrigin>();
+
+        if (!xrOrigin)
+        {
+            Debug.LogError("(NetworkManager): Could not find XR Origin.");
+            return;
+        }
+
+        xrOrigin.MatchOriginUpCameraForward(spawnPoint.up, spawnPoint.forward);
+        xrOrigin.MoveCameraToWorldLocation(spawnPoint.position);
+    }
+
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         Debug.Log($"[JOIN] Player joined: {player}, Local Player: {runner.LocalPlayer}");
@@ -263,8 +336,13 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnSceneLoadDone(NetworkRunner runner)
     {
         loadBattleRequested = false;
-        
-        if (SceneManager.GetActiveScene().name == "NetworkScene") LocalPlayerHealth?.ResetHealth();
+
+        if (SceneManager.GetActiveScene().name == "NetworkScene")
+        {
+            StartCoroutine(SetupArenaDelay());
+            
+            LocalPlayerHealth?.ResetHealth();
+        }
     }
 
     public void OnSceneLoadStart(NetworkRunner runner) {}
