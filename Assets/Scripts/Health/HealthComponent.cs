@@ -1,56 +1,117 @@
 using System;
+using Fusion;
 using UnityEngine;
 
 namespace GameAssets.Health
 {
-  public abstract class HealthComponent : MonoBehaviour
+  public abstract class HealthComponent : NetworkBehaviour
   {
-    [SerializeField] protected int maxHP = 100;
-
-    public int MaxHP => maxHP;
+    [SerializeField, Min(1)]
+    protected int startingMaxHP = 100;
+    
+    [Networked]
+    public int MaxHP { get; protected set; }
+    
+    [Networked, OnChangedRender(nameof(OnHealthChangedRender))]
     public int CurrentHP { get; protected set; }
+    
     public bool IsAlive => CurrentHP > 0;
-    public float NormalisedHP => maxHP > 0 ? (float)CurrentHP / maxHP : 0f;
+    
+    public bool IsSpawned { get; private set; }
+    
+    public float NormalizedHP => MaxHP > 0 ? (float) CurrentHP / MaxHP : 0f;
 
     public event Action<int, int> OnHealthChanged;
     public event Action OnDeath;
 
-    protected virtual void Awake() => CurrentHP = maxHP;
+    private bool deathOccurred;
 
-public virtual void TakeDamage(int damage)
-{
-    PlayerHealth player = this as PlayerHealth;
-    if (player != null)
+    public override void Spawned()
     {
-        Shield activeShield = FindFirstObjectByType<Shield>();
-        if (activeShield != null && activeShield.isHeld && activeShield.isRaised)
-        {
-            damage = Mathf.RoundToInt(damage * 0.5f);   // 50% damage reduction
-            Debug.Log($"Shield raised! Damage reduced to {damage}");
-        }
+      IsSpawned = true;
+      deathOccurred = false;
+
+      if (Object.HasStateAuthority)
+      {
+        MaxHP = Mathf.Max(1, GetStartingMaxHP());
+        CurrentHP = MaxHP;
+      }
+      
+      OnHealthChanged?.Invoke(CurrentHP, MaxHP);
     }
 
-    if (!IsAlive || damage <= 0) return;
-    CurrentHP = Mathf.Max(0, CurrentHP - damage);
-    OnHealthChanged?.Invoke(CurrentHP, maxHP);
-    if (CurrentHP <= 0)
+    public override void Despawned(NetworkRunner runner, bool hasState)
     {
-        OnDeath?.Invoke();
-        Debug.Log("Player died!");
-    }
-}
-
-    public virtual void Heal(int amount)
-    {
-      if (!IsAlive || amount <= 0) return;
-      CurrentHP = Mathf.Min(maxHP, CurrentHP + amount);
-      OnHealthChanged?.Invoke(CurrentHP, maxHP);
+      IsSpawned = false;
     }
 
-    public virtual void ResetHealth()
+    protected virtual int GetStartingMaxHP()
     {
-      CurrentHP = maxHP;
-      OnHealthChanged?.Invoke(CurrentHP, maxHP);
+      return startingMaxHP;
+    }
+
+    protected bool ApplyDamage(int damage)
+    {
+      if (!Object.HasStateAuthority) return false;
+
+      if (!IsAlive || damage <= 0) return false;
+
+      CurrentHP = Mathf.Max(0, CurrentHP - damage);
+      
+      OnHealthChanged?.Invoke(CurrentHP, MaxHP);
+      CheckDeath();
+      
+      return true;
+    }
+
+    protected bool ApplyHealing(int heal)
+    {
+      if (!Object.HasStateAuthority) return false;
+      
+      if (!IsAlive || heal <= 0) return false;
+
+      var previousHP = CurrentHP;
+
+      CurrentHP = Mathf.Min(MaxHP, CurrentHP + heal);
+      
+      if (CurrentHP == previousHP) return false;
+      
+      OnHealthChanged?.Invoke(CurrentHP, MaxHP);
+      return true;
+    }
+
+    protected void SetMaxHP(int newMaxHP, bool refillHP)
+    {
+      if (!Object.HasStateAuthority) return;
+
+      MaxHP = Mathf.Max(1, newMaxHP);
+      
+      CurrentHP = refillHP ? MaxHP : Mathf.Clamp(CurrentHP, 0, MaxHP);
+
+      deathOccurred = CurrentHP <= 0;
+      OnHealthChanged?.Invoke(CurrentHP, MaxHP);
+    }
+
+    public void ResetHealth()
+    {
+      if (!Object.HasStateAuthority) return;
+      CurrentHP = MaxHP;
+      deathOccurred = false;
+      OnHealthChanged?.Invoke(CurrentHP, MaxHP);
+    }
+
+    private void OnHealthChangedRender()
+    {
+      OnHealthChanged?.Invoke(CurrentHP, MaxHP);
+      CheckDeath();
+    }
+    
+    private void CheckDeath()
+    {
+      if (CurrentHP > 0 || deathOccurred) return;
+
+      deathOccurred = true;
+      OnDeath?.Invoke();
     }
   }
 }

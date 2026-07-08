@@ -1,30 +1,39 @@
-using System;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameOverUI : MonoBehaviour
 {
+    [SerializeField] private GameObject gameOverPanel;
     private void Awake()
     {
-        gameObject.SetActive(false);
+        gameOverPanel.SetActive(false);
     }
 
     public void ShowGameOverScreen()
     {
-        gameObject.SetActive(true);
+        gameOverPanel.SetActive(true);
+    }
+
+    public void HideGameOverScreen()
+    {
+        gameOverPanel.SetActive(false);
     }
 
     public void RestartGame()
     {
-        var currentScene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(currentScene.name);
+        if (NetworkManager.Instance == null)
+        {
+            Debug.LogError($"(GameOverUI): Could not find NetworkManager!");
+            return;
+        }
+        
+        NetworkManager.Instance.RequestBattleRestart();
     }
 
     public void ExitGame()
     {
 #if UNITY_EDITOR
-        EditorApplication.isPlaying = false;
+        UnityEditor.EditorApplication.isPlaying = false;
 #else
         Application.Quit();
 #endif

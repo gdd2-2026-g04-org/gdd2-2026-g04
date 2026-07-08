@@ -1,4 +1,3 @@
-using System;
 using Fusion;
 using UnityEngine;
 
@@ -11,30 +10,68 @@ public class NetworkedXRAvatar : NetworkBehaviour
 
     [SerializeField] private GameObject[] hideForLocalPlayer;
 
-    [Header("Warrior Weapon Prefabs")]
-    [SerializeField] private GameObject swordPrefab;
-    [SerializeField] private GameObject shieldPrefab;
+    [Header("Warrior Visuals")]
+    [SerializeField] private GameObject warriorSwordVisual;
+    [SerializeField] private GameObject warriorShieldVisual;
 
-    // Networked properties that sync automatically to all players
-    [Networked] public PlayerClass SelectedClass { get; set; }
-    [Networked] public NetworkBool IsReady { get; set; }
-
-    private XRReferences XRreferences;
+    [Header("Mage Visuals")]
+    [SerializeField] private GameObject mageStaffVisual;
     
-    // Store local references to spawned weapon objects so we can clean them up if class changes
-    private GameObject instantiatedSword;
-    private GameObject instantiatedShield;
+    [Header("Healer Visuals")]
+    [SerializeField] private GameObject healerVisual;
+    
+    [Header("Archer Visuals")]
+    [SerializeField] private GameObject archerBowVisual;
+    
+    // Networked properties that sync automatically to all players
+    [Networked, OnChangedRender(nameof(OnClassChanged))]
+    public PlayerClass SelectedClass { get; private set; }
+    
+    [Networked, OnChangedRender(nameof(OnReadyChanged))]
+    public NetworkBool IsReady { get; private set; }
+
+    private XRReferences xrReferences;
 
     public override void Spawned()
     {
-        if (Object.HasStateAuthority)
-        {
-            XRreferences = XRReferences.Instance;
+        var isOwner = Object.HasStateAuthority;
+        
+        SetVisualsVisible(!isOwner);
 
-            foreach (var obj in hideForLocalPlayer)
-            {
-                if (obj != null) obj.SetActive(false);
-            }
+        if (!isOwner)
+        {
+            ApplyClassVisuals();
+            return;
+        }
+        
+        xrReferences = XRReferences.Instance;
+
+        if (LocalClassSelector.Instance != null)
+        {
+            LocalClassSelector.Instance.ClassChanged += SetClass;
+            var selectedClass = LocalClassSelector.Instance.SelectedClass;
+
+            if (selectedClass != PlayerClass.None) SetClass(selectedClass);
+        }
+
+        ApplyClassVisuals();
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        if (Object.HasStateAuthority && LocalClassSelector.Instance != null)
+        {
+            LocalClassSelector.Instance.ClassChanged -= SetClass;
+        }
+    }
+
+    private void SetVisualsVisible(bool visible)
+    {
+        if (hideForLocalPlayer == null) return;
+        
+        foreach (GameObject visual in hideForLocalPlayer)
+        {
+            visual?.SetActive(visible);
         }
     }
 
@@ -42,12 +79,12 @@ public class NetworkedXRAvatar : NetworkBehaviour
     {
         if (!Object.HasStateAuthority) return;
         
-        if (!XRreferences) XRreferences = XRReferences.Instance;
-        if (!XRreferences) return;
+        if (!xrReferences) xrReferences = XRReferences.Instance;
+        if (!xrReferences) return;
         
-        CopyTransform(XRreferences.head, head);
-        CopyTransform(XRreferences.leftHand, leftHand);
-        CopyTransform(XRreferences.rightHand, rightHand);
+        CopyTransform(xrReferences.head, head);
+        CopyTransform(xrReferences.leftHand, leftHand);
+        CopyTransform(xrReferences.rightHand, rightHand);
     }
 
     private void CopyTransform(Transform src, Transform t)
@@ -56,56 +93,105 @@ public class NetworkedXRAvatar : NetworkBehaviour
         t.SetPositionAndRotation(src.position, src.rotation);
     }
 
-    // Fusion executes this whenever a networked property is updated
-    public override void Render()
+    public void SetClass(PlayerClass selectedClass)
     {
-        UpdateWeaponVisuals(SelectedClass);
-    }
-
-    private void UpdateWeaponVisuals(PlayerClass currentClass)
-    {
-        // Clean up previous weapons first if they exist
-        if (currentClass != PlayerClass.Warrior)
+        if (!Object.HasStateAuthority)
         {
-            if (instantiatedSword != null) Destroy(instantiatedSword);
-            if (instantiatedShield != null) Destroy(instantiatedShield);
+            Debug.LogWarning($"{name}: Only State Authority can change the selected class.");
             return;
         }
 
-        // If the class is Warrior and weapons are not yet spawned, spawn them
-        if (currentClass == PlayerClass.Warrior)
+        if (selectedClass == PlayerClass.None)
         {
-            if (instantiatedSword == null && rightHand != null && swordPrefab != null)
-            {
-                instantiatedSword = Instantiate(swordPrefab, rightHand);
-                SetupEquippedWeapon(instantiatedSword);
-            }
-
-            if (instantiatedShield == null && leftHand != null && shieldPrefab != null)
-            {
-                instantiatedShield = Instantiate(shieldPrefab, leftHand);
-                SetupEquippedWeapon(instantiatedShield);
-            }
+            Debug.LogWarning($"{name}: \"None\" is not a valid class.");
+            return;
         }
+        
+        SelectedClass = selectedClass;
+        IsReady = false;
+        
+        GetComponent<GameAssets.Health.PlayerHealth>()?.SetClass(selectedClass);
+        
+        ApplyClassVisuals();
+        RPC_RequestLobbyCheck();
     }
 
-    private void SetupEquippedWeapon(GameObject weaponObj)
+    public void SetReady(bool ready)
     {
-        // 1. Reset local position to sit perfectly on the hand anchor
-        weaponObj.transform.localPosition = Vector3.zero;
-        weaponObj.transform.localRotation = Quaternion.identity;
-
-        // 2. Disable physics and drop capabilities so they stay locked to the avatar's hands
-        if (weaponObj.TryGetComponent<Rigidbody>(out var rb))
+        if (!Object.HasStateAuthority) return;
+        
+        if (ready && SelectedClass == PlayerClass.None)
         {
-            rb.isKinematic = true;
-            rb.useGravity = false;
+            Debug.LogWarning($"{name}: Can't ready up with class being \"None\".");
+            return;
         }
 
-        // 3. Disable the XR Grab component so players can't drop them on the floor
-        if (weaponObj.TryGetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>(out var grab))
+        IsReady = ready;
+        RPC_RequestLobbyCheck();
+    }
+
+    public void RequestBattleRestart()
+    {
+        if (!Object.HasStateAuthority) return;
+
+        RPC_RequestBattleRestart();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_RequestBattleRestart()
+    {
+        if (Runner.IsSceneAuthority) NetworkManager.Instance?.RestartBattle();
+    }
+
+    private void OnClassChanged()
+    {
+        ApplyClassVisuals();
+    }
+
+    private void OnReadyChanged()
+    {
+        Debug.Log($"{name}: class = {SelectedClass}, ready = {IsReady}");
+    }
+    
+    private void ApplyClassVisuals()
+    {
+        var showRemoteEquipment = !Object.HasStateAuthority;
+
+        var warriorActive =
+            showRemoteEquipment &&
+            SelectedClass == PlayerClass.Warrior;
+
+        var mageActive =
+            showRemoteEquipment &&
+            SelectedClass == PlayerClass.Mage;
+
+        var healerActive =
+            showRemoteEquipment &&
+            SelectedClass == PlayerClass.Healer;
+
+       var archerActive =
+            showRemoteEquipment &&
+            SelectedClass == PlayerClass.Archer;
+
+        SetActive(warriorSwordVisual, warriorActive);
+        SetActive(warriorShieldVisual, warriorActive);
+        SetActive(mageStaffVisual, mageActive);
+        SetActive(healerVisual, healerActive);
+        SetActive(archerBowVisual, archerActive);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_RequestLobbyCheck()
+    {
+        if (Runner.IsSceneAuthority)
         {
-            grab.enabled = false;
+            NetworkManager.Instance?.RequestLobbyCheck();
         }
     }
+    
+    private static void SetActive(GameObject target, bool active)
+    {
+        if (target != null && target.activeSelf != active) target.SetActive(active);
+    }
+
 }

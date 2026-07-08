@@ -4,5 +4,5 @@ public enum PlayerClass
     Warrior,
     Healer,
     Mage,
-    Hunter
+    Archer
 }

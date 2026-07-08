@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3803488298943158763}
   - component: {fileID: 4297220253464880925}
   - component: {fileID: 8680980003875964020}
+  - component: {fileID: -7173997203683445459}
   m_Layer: 0
   m_Name: NetworkXRPlayer
   m_TagString: Untagged
@@ -56,6 +57,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 4297220253464880925}
   - {fileID: 8680980003875964020}
+  - {fileID: -7173997203683445459}
   - {fileID: 4720577151298747766}
   - {fileID: 2010001957674498089}
   - {fileID: 8582409394367818381}
@@ -96,6 +98,35 @@ MonoBehaviour:
   - {fileID: 7844249737855938270}
   - {fileID: 6782737075039731865}
   - {fileID: 5260171197079644869}
+  warriorSwordVisual: {fileID: 0}
+  warriorShieldVisual: {fileID: 0}
+  mageStaffVisual: {fileID: 0}
+  healerVisual: {fileID: 0}
+  archerBowVisual: {fileID: 0}
+  _SelectedClass: 0
+  _IsReady:
+    _value: 0
+--- !u!114 &-7173997203683445459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3316687044751888072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68f3009726ea5484a8e9cf8cdb5ef260, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameAssets.Health.PlayerHealth
+  startingMaxHP: 100
+  _MaxHP: 0
+  _CurrentHP: 0
+  warriorData: {fileID: 11400000, guid: 5eb1fca1326f86843bab09a5e3eb9d8a, type: 2}
+  mageData: {fileID: 11400000, guid: a66928e50e110624c9905b6a19dedee6, type: 2}
+  healerData: {fileID: 11400000, guid: 166966970380b6a4d8d6de308403ed93, type: 2}
+  archerData: {fileID: 11400000, guid: d5db7c24dab5fbe4c955088125017778, type: 2}
+  _Damage: 0
+  _CurrentClass: 0
 --- !u!1 &4281648752884963532
 GameObject:
   m_ObjectHideFlags: 0

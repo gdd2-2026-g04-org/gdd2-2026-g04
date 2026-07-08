@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace GameAssets.Health
@@ -7,81 +8,157 @@ namespace GameAssets.Health
   public class HealthSystemManager : MonoBehaviour
   {
     [SerializeField] private BossHealth bossHealth;
-    [SerializeField] private List<PlayerHealth> players = new();
+
+    private readonly List<PlayerHealth> players = new();
 
     public BossHealth Boss => bossHealth;
-    public int AlivePlayerCount { get { int n = 0; foreach (var p in players) if (p.IsAlive) n++; return n; } }
+
+    public int AlivePlayerCount
+    {
+      get
+      {
+        return players.Count(player => player is not null && player.IsAlive);
+      }
+    }
 
     public event Action OnEncounterVictory;
     public event Action OnPartyWipe;
 
     private bool encounterOver;
 
-    private void OnEnable() { if (bossHealth != null) bossHealth.OnBossDefeated += HandleVictory; }
-    private void OnDisable() { if (bossHealth != null) bossHealth.OnBossDefeated -= HandleVictory; }
+    private bool HasSceneAuthority =>
+      bossHealth != null && bossHealth.Runner != null && bossHealth.Runner.IsSceneAuthority;
+
+    private void OnEnable()
+    {
+      PlayerHealth.PlayerSpawned += RegisterPlayer;
+      PlayerHealth.PlayerDespawned += UnregisterPlayer;
+      
+      var existingPlayers =
+      FindObjectsByType<PlayerHealth>(FindObjectsSortMode.None);
+
+      foreach (var player in existingPlayers) RegisterPlayer(player);
+
+      if (bossHealth == null) bossHealth = FindFirstObjectByType<BossHealth>();
+
+      RegisterBoss(bossHealth);
+    }
+
+    private void OnDisable()
+    {
+      PlayerHealth.PlayerSpawned -= RegisterPlayer;
+      PlayerHealth.PlayerDespawned -= UnregisterPlayer;
+
+      if (bossHealth)
+      {
+        bossHealth.OnBossDefeated -= HandleVictory;
+      }
+
+      foreach (var player in players)
+      {
+        if (player != null) player.OnDeath -= CheckPartyWipe;
+      }
+      
+      players.Clear();
+    }
 
     public void RegisterBoss(BossHealth boss)
     {
-      if (bossHealth != null) bossHealth.OnBossDefeated -= HandleVictory;
+      if (bossHealth != null)
+      {
+        bossHealth.OnBossDefeated -= HandleVictory;
+      }
+
       bossHealth = boss;
-      bossHealth.OnBossDefeated += HandleVictory;
+
+      if (bossHealth != null)
+      {
+        bossHealth.OnBossDefeated += HandleVictory;
+      }
     }
 
     public void RegisterPlayer(PlayerHealth player)
     {
-      if (!players.Contains(player))
-      {
-        players.Add(player);
-        player.OnDeath += CheckPartyWipe;
-      }
+      if (!player || players.Contains(player)) return;
+      players.Add(player);
+      player.OnDeath += CheckPartyWipe;
+      
+      Debug.Log($"Registered player health: {player.name}");
+    }
+
+    public void UnregisterPlayer(PlayerHealth player)
+    {
+      if (!player) return;
+      
+      player.OnDeath -= CheckPartyWipe;
+      players.Remove(player);
+      Debug.Log($"Unregistered player health: {player.name}");
     }
 
     public void ApplyDamageToBoss(int damage)
     {
-      if (bossHealth == null || !bossHealth.IsAlive) return;
-      bossHealth.TakeDamage(damage);
+      if (encounterOver || !bossHealth || !bossHealth.IsAlive) return;
+      
+      bossHealth.RequestDamage(damage);
     }
 
     public void ApplyDamageToAllPlayers(int damage)
     {
-      foreach (PlayerHealth p in players) if (p.IsAlive) p.TakeDamage(damage);
-      CheckPartyWipe();
+      if (!HasSceneAuthority || encounterOver) return;
+
+      foreach (var player in players)
+      {
+        if (player && player.IsAlive) player.RequestDamage(damage);
+      }
     }
 
     public void ApplyDamageToPlayer(PlayerHealth player, int damage)
     {
-      if (player == null || !player.IsAlive) return;
-      player.TakeDamage(damage);
+      if (!HasSceneAuthority || encounterOver || !player || !player.IsAlive) return;
+
+      player.RequestDamage(damage);
     }
 
-    public void HealBoss(int amount)
+    public void HealBoss(int heal)
     {
-      if (bossHealth == null || !bossHealth.IsAlive) return;
-      bossHealth.Heal(amount);
+      if (encounterOver || !bossHealth || !bossHealth.IsAlive) return;
+      
+      bossHealth.RequestHeal(heal);
     }
 
-    public void HealAllPlayers(int amount)
+    public void HealAllPlayers(int heal)
     {
-      foreach (PlayerHealth p in players)
-        if (p.IsAlive) p.Heal(amount);
+      if (!HasSceneAuthority || encounterOver) return;
+
+      foreach (var player in players.Where(player => player && player.IsAlive))
+      {
+        player.RequestHeal(heal);
+      }
     }
 
-    public void HealPlayer(PlayerHealth player, int amount)
+    public void HealPlayer(PlayerHealth player, int heal)
     {
-      if (player == null || !player.IsAlive) return;
-      player.Heal(amount);
+      if (encounterOver || !player || !player.IsAlive) return;
+      
+      player.RequestHeal(heal);
     }
 
     private void CheckPartyWipe()
     {
-      foreach (PlayerHealth p in players)
-        if (p.IsAlive) return;
+      if (encounterOver) return;
+
+      foreach (var player in players)
+      {
+        if (player != null && player.IsAlive) return;
+      }
+      
       HandlePartyWipe();
     }
 
     private void HandleVictory()
     {
       if (encounterOver) return;
+
       encounterOver = true;
       OnEncounterVictory?.Invoke();
     }
@@ -89,6 +166,7 @@ namespace GameAssets.Health
     private void HandlePartyWipe()
     {
       if (encounterOver) return;
+
       encounterOver = true;
       OnPartyWipe?.Invoke();
     }

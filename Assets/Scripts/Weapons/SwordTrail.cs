@@ -1,5 +1,4 @@
 using System;
-using GameAssets.Battle;
 using GameAssets.Health;
 using UnityEngine;
 
@@ -7,116 +6,144 @@ namespace GameAssets.Weapons
 {
 public class SwordTrail : MonoBehaviour
 {
-  [Header("Player")]
-  [SerializeField] private int playerIndex = 0;
-  [SerializeField] private PlayerHealth playerHealth;
-
   [Header("Weapon")]
   [SerializeField] private WeaponData weapon;
 
-  [Header("Trail")]
-  [SerializeField] private TrailRenderer trailRenderer;
-  [SerializeField] private float trailDelay = 0.2f;
+  [Header("Trail")] [SerializeField] private TrailRenderer trailRenderer;
 
-  [Header("Sound")]
-  [SerializeField] private AudioSource audioSource;
-  [SerializeField] private AudioClip swingSound;
+  [SerializeField, Min(0f)]
+  private float trailDelay = 0.2f;
 
-  [Header("Combat Settings")]
-  [SerializeField] private float attackCooldown = 1.0f;
+  [Header("Combat")] [SerializeField, Min(0f)]
+  private float attackCooldown = 1f;
+
+  private PlayerHealth playerHealth;
+  private HealthSystemManager healthManager;
 
   private Vector3 lastPosition;
-  private float currentSpeed;
-  private float lastSoundTime;
-  private float lastAttackTime;
-  private bool wasSwinging;
-  private bool wasTrailing;
-  private float lastTrailTime;
-  private float lastSwingSoundTime;
+  private float lastAttackTime = float.NegativeInfinity;
+  private float lastTrailTime = float.NegativeInfinity;
+  private float lastSwingSoundTime = float.NegativeInfinity;
 
-  private TurnManager turnManager;
-  private HealthSystemManager healthManager;
+  private bool wasSwinging;
 
   private void Awake()
   {
-    if (trailRenderer != null)
+    if (!trailRenderer) return;
+
+    trailRenderer.emitting = false;
+    trailRenderer.Clear();
+  }
+
+  private void OnEnable()
+  {
+    lastPosition = transform.position;
+    wasSwinging = false;
+
+    if (trailRenderer)
     {
       trailRenderer.emitting = false;
       trailRenderer.Clear();
     }
+
+    ResolveReferences();
   }
 
-  private void Start()
+  private void OnDisable()
   {
-    lastPosition = transform.position;
-    turnManager = TurnManager.Instance;
-    healthManager = FindFirstObjectByType<HealthSystemManager>();
+    if (trailRenderer)
+    {
+      trailRenderer.emitting = false;
+      trailRenderer.Clear();
+    }
 
-    if (playerHealth == null)
-      playerHealth = GetComponentInParent<PlayerHealth>();
+    wasSwinging = false;
   }
 
   private void LateUpdate()
   {
-      if (weapon == null || trailRenderer == null) return;
+    if (!weapon || !trailRenderer) return;
+    
+    var deltaTime = Time.deltaTime;
 
-      currentSpeed = (transform.position - lastPosition).magnitude / Time.deltaTime;
-      lastPosition = transform.position;
+    if (deltaTime <= 0f) return;
 
-      bool isSwinging = currentSpeed > weapon.minSpeedForTrail;
-      bool canAttack = Time.time >= lastAttackTime + attackCooldown;
-      bool isValidSwing = isSwinging && canAttack;
+    var curSpeed = Vector3.Distance(transform.position, lastPosition) / deltaTime;
 
-      // === TRAIL (uses its own timer) ===
-      if (isValidSwing)
-      {
-          lastTrailTime = Time.time;           // ← Separate timer for trail
-      }
+    lastPosition = transform.position;
 
-      bool shouldTrail = Time.time <= lastTrailTime + trailDelay;
-      trailRenderer.emitting = shouldTrail && canAttack;
+    var isSwinging = curSpeed > weapon.minSpeedForTrail;
 
-      if (!shouldTrail && wasTrailing)
-      {
-          trailRenderer.emitting = false;
-      }
+    bool attackReady = Time.time >= lastAttackTime + attackCooldown;
+    
+    UpdateTrail(isSwinging, attackReady);
+    UpdateSound(isSwinging, attackReady);
+    
+    if (isSwinging && !wasSwinging && attackReady) TryAttackBoss();
 
-      // === DAMAGE + COOLDOWN ===
-      if (isSwinging && !wasSwinging)
-      {
-          if (turnManager != null && turnManager.IsPlayerTurn)
-          {
-              if (canAttack)
-              {
-                  int damage = weapon.damage + (playerHealth != null ? playerHealth.Damage : 0);
+    wasSwinging = isSwinging;
+  }
 
-                  if (healthManager != null)
-                  {
-                      healthManager.ApplyDamageToBoss(damage);
-                  }
+  private void UpdateTrail(bool isSwinging, bool attackReady)
+  {
+    if (isSwinging && attackReady)
+    {
+      lastTrailTime = Time.time;
+    }
+    
+    var shouldEmit = Time.time <= lastTrailTime + trailDelay;
 
-                  Debug.Log($"[Sword] Player {playerIndex} swings for {damage} damage (IMMEDIATE)");
-                  lastAttackTime = Time.time;
-              }
-              else
-              {
-                  Debug.Log($"[Sword] Player {playerIndex} attack on cooldown");
-              }
-          }
-      }
+    trailRenderer.emitting = shouldEmit;
+  }
 
-      // === SOUND (plays together with trail) ===
-      if (isValidSwing && Time.time > lastSwingSoundTime + weapon.soundCooldown)
-      {
-          if (audioSource != null && swingSound != null)
-          {
-              audioSource.PlayOneShot(swingSound);
-              lastSwingSoundTime = Time.time;
-          }
-      }
+  private void UpdateSound(bool isSwinging, bool attackReady)
+  {
+    if (!isSwinging || !attackReady) return;
 
-      wasSwinging = isSwinging;
-      wasTrailing = shouldTrail;
+    if (Time.time < lastSwingSoundTime + weapon.soundCooldown) return;
+    
+    // # play sound here
+    lastSwingSoundTime = Time.time;
+  }
+
+  private void TryAttackBoss()
+  {
+    if (!healthManager)
+    {
+      Debug.LogWarning("(SwordTrail): Health Manager is missing!");
+      return;
+    }
+
+    if (!playerHealth)
+    {
+      Debug.LogWarning("(SwordTrail): PlayerHealth is missing!");
+      return;
+    }
+
+    var boss = healthManager.Boss;
+
+    if (!boss || !boss.IsSpawned || !boss.IsAlive) return;
+
+    var damage = weapon.damage + playerHealth.Damage;
+    
+    healthManager.ApplyDamageToBoss(damage);
+
+    lastAttackTime = Time.time;
+    
+    Debug.Log($"(Sword): Requested {damage} against {boss.name}");
+  }
+
+  private void ResolveReferences()
+  {
+    if (!healthManager)
+    {
+      healthManager = FindFirstObjectByType<HealthSystemManager>();
+    }
+
+    if (!playerHealth && NetworkManager.Instance)
+    {
+      playerHealth = NetworkManager.Instance.LocalPlayerHealth;
+    }
   }
 }
 }

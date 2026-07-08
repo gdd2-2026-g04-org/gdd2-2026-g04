@@ -13,6 +13,15 @@ public class SmoothHUDFollow : MonoBehaviour
 
     private Vector3 velocity;
 
+    private void Start()
+    {
+        vrCamera = Camera.main?.transform;
+        if (TryGetComponent(out Canvas c))
+        {
+            c.worldCamera = Camera.main;
+        }
+    }
+
     private void LateUpdate()
     {
         if (vrCamera == null) return;

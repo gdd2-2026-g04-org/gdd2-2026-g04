@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using GameAssets.Health;
 using TMPro;
 using UnityEngine;
@@ -7,71 +9,142 @@ namespace GameAssets.UI
 {
   public class HealthDisplay : MonoBehaviour
   {
-    [SerializeField] private HealthComponent target;
+    private enum TargetType
+    {
+        Player,
+        Boss
+    }
+
+    [Header("Target")]
+    [SerializeField] private TargetType targetType;
 
     [Header("Counter")]
     [SerializeField] private TMP_Text label;
 
-    [Header("Bar")]
+    [Header("Health Bars")]
     [SerializeField] private Image fillBar;
     [SerializeField] private Image damageBar;
-    
-    private float delayTimer;
-    private float lerpSpeed = 0.2f; 
 
-    private void Start()
+    [Header("Damage Bar Animation")]
+    [SerializeField, Min(0f)] private float damageBarDelay = 0.5f;
+    [SerializeField, Min(0f)] private float damageBarSpeed = 0.2f;
+
+    private HealthComponent target;
+    private Coroutine resolveTargetCoroutine;
+    private float delayTimer;
+
+    private void OnEnable()
     {
-      if (target == null) return;
-      target.OnHealthChanged += UpdateDisplay;
-      UpdateDisplay(target.CurrentHP, target.MaxHP);
-      
-      if (damageBar != null) damageBar.fillAmount = (float)target.CurrentHP / target.MaxHP;
+        resolveTargetCoroutine = StartCoroutine(ResolveTargetWhenAvailable());
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
-      if (target != null)
-        target.OnHealthChanged -= UpdateDisplay;
+        if (resolveTargetCoroutine != null)
+        {
+            StopCoroutine(resolveTargetCoroutine);
+            resolveTargetCoroutine = null;
+        }
+        UnsubscribeFromTarget();
     }
 
     private void Update()
     {
-        if (damageBar != null && damageBar.fillAmount > fillBar.fillAmount)
+        if (!fillBar || !damageBar) return;
+
+        if (damageBar.fillAmount <= fillBar.fillAmount) return;
+
+        if (delayTimer > 0f)
         {
-            if (delayTimer > 0)
+            delayTimer -= Time.deltaTime;
+            return;
+        }
+
+        damageBar.fillAmount =
+            Mathf.MoveTowards(damageBar.fillAmount, fillBar.fillAmount, damageBarSpeed * Time.deltaTime);
+    }
+
+    private IEnumerator ResolveTargetWhenAvailable()
+    {
+        while (!target)
+        {
+            var resolvedTarget = ResolveTarget();
+
+            if (resolvedTarget && resolvedTarget.IsSpawned)
             {
-                delayTimer -= Time.deltaTime;
+                SetTarget(resolvedTarget);
+                resolveTargetCoroutine = null;
+                yield break;
             }
-            else
+
+            yield return null;
+        }
+        resolveTargetCoroutine = null;
+    }
+
+    private HealthComponent ResolveTarget()
+    {
+        switch (targetType)
+        {
+            case TargetType.Player:
+                return !NetworkManager.Instance ? null : NetworkManager.Instance.LocalPlayerHealth;
+            case TargetType.Boss:
+                return FindFirstObjectByType<BossHealth>();
+            default:
+                return null;
+        }
+    }
+
+    private void SetTarget(HealthComponent newTarget)
+    {
+        if (target == newTarget) return;
+        
+        UnsubscribeFromTarget();
+
+        target = newTarget;
+
+        if (!target)
+        {
+            ClearDisplay();
+            return;
+        }
+        
+        target.OnHealthChanged += UpdateDisplay;
+        UpdateDisplay(target.CurrentHP, target.MaxHP);
+    }
+
+    private void UnsubscribeFromTarget()
+    {
+        if (target) target.OnHealthChanged -= UpdateDisplay;
+        target = null;
+    }
+
+    private void UpdateDisplay(int currentHP, int maxHP)
+    {
+        var ratio = maxHP > 0 ? Mathf.Clamp01((float)currentHP / maxHP) : 0f;
+        if (label) label.text = $"{currentHP} / {maxHP}";
+
+        if (fillBar)
+        {
+            if (ratio < fillBar.fillAmount) delayTimer = damageBarDelay;
+            fillBar.fillAmount = ratio;
+        }
+
+        if (damageBar)
+        {
+            if (ratio >= damageBar.fillAmount)
             {
-                damageBar.fillAmount -= lerpSpeed * Time.deltaTime;
+                damageBar.fillAmount = ratio;
             }
         }
     }
 
-private void UpdateDisplay(int current, int max)
-{
-    Debug.Log($"{gameObject.name} (Target: {target.name}) updated to {current}/{max}");
-
-    if (label != null)
-        label.text = $"{current} / {max}";
-
-      // 2. Update the Bars
-      if (fillBar != null)
-      {
-        float ratio = (max > 0) ? (float)current / (float)max : 0f;
-        
-        // Debugging line (Check your console to see if the ratio makes sense)
-        Debug.Log($"Displaying {gameObject.name}: {current}/{max} = {ratio}");
-
-        // If the health dropped, trigger the delay for the orange bar
-        if (ratio < fillBar.fillAmount)
-        {
-            delayTimer = 0.5f; 
-        }
-        
-        fillBar.fillAmount = ratio;
-      }
+    private void ClearDisplay()
+    {
+        if (label) label.text = "0 / 0";
+        if (fillBar) fillBar.fillAmount = 0f;
+        if (damageBar) damageBar.fillAmount = 0f;
+        delayTimer = 0f;
     }
   }
 }

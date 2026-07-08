@@ -56,7 +56,7 @@ public class LocalClassManager : MonoBehaviour
             if (warriorButton != null) warriorButton.onClick.AddListener(() => SelectClass(PlayerClass.Warrior));
             if (mageButton != null) mageButton.onClick.AddListener(() => SelectClass(PlayerClass.Mage));
             if (healerButton != null) healerButton.onClick.AddListener(() => SelectClass(PlayerClass.Healer));
-            if (hunterButton != null) hunterButton.onClick.AddListener(() => SelectClass(PlayerClass.Hunter));
+            if (hunterButton != null) hunterButton.onClick.AddListener(() => SelectClass(PlayerClass.Archer));
             if (readyButton != null) readyButton.onClick.AddListener(StartBattleScene);
 
             // Reset the button highlights so everything starts white
@@ -75,7 +75,7 @@ public class LocalClassManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "NetworkScene" || scene.name == "SampleScene")
+        if (scene.name is "NetworkScene" or "SampleScene")
         {
             EquipLocalClassWeapons();
         }
@@ -106,7 +106,7 @@ public class LocalClassManager : MonoBehaviour
         SetButtonColor(warriorButton, selectedClass == PlayerClass.Warrior);
         SetButtonColor(mageButton, selectedClass == PlayerClass.Mage);
         SetButtonColor(healerButton, selectedClass == PlayerClass.Healer);
-        SetButtonColor(hunterButton, selectedClass == PlayerClass.Hunter);
+        SetButtonColor(hunterButton, selectedClass == PlayerClass.Archer);
     }
 
     private void SetButtonColor(Button button, bool isSelected)
@@ -143,7 +143,7 @@ public class LocalClassManager : MonoBehaviour
                 InitializeHealerLogic(mace);
                 break;
 
-            case PlayerClass.Hunter:
+            case PlayerClass.Archer:
                 GameObject bow = SpawnAndAttach(hunterBowPrefab, xr.leftHand); // Bows usually in left hand
                 InitializeHunterLogic(bow);
                 break;

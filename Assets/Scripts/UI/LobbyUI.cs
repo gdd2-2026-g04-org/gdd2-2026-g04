@@ -1,69 +1,71 @@
+using System;
 using UnityEngine;
 using Fusion;
+using UnityEngine.UI;
 
 public class LobbyUI : MonoBehaviour
 {
+    private bool localReady;
+    [SerializeField] private Button readyButton;
+
     public void SelectWarriorClass()
     {
-        NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
-        if (runner == null) return;
+        SelectClass(PlayerClass.Warrior);
+    }
 
-        NetworkObject localPlayerObj = runner.GetPlayerObject(runner.LocalPlayer);
-        if (localPlayerObj != null && localPlayerObj.TryGetComponent<NetworkedXRAvatar>(out var avatar))
-        {
-            avatar.SelectedClass = PlayerClass.Warrior;
-            Debug.Log("Warrior class selected.");
-        }
+    public void SelectMageClass()
+    {
+        SelectClass(PlayerClass.Mage);
+    }
+
+    public void SelectHealerClass()
+    {
+        SelectClass(PlayerClass.Healer);
+    }
+
+    public void SelectArcherClass()
+    {
+        SelectClass(PlayerClass.Archer);
     }
 
     public void ToggleReadyState()
     {
-        NetworkRunner runner = FindFirstObjectByType<NetworkRunner>();
-        if (runner == null) return;
+        if (LocalClassSelector.Instance == null) return;
 
-        NetworkObject localPlayerObj = runner.GetPlayerObject(runner.LocalPlayer);
-        if (localPlayerObj != null && localPlayerObj.TryGetComponent<NetworkedXRAvatar>(out var avatar))
+        if (LocalClassSelector.Instance.SelectedClass == PlayerClass.None)
         {
-            avatar.IsReady = !avatar.IsReady;
-            Debug.Log($"Ready state set to: {avatar.IsReady}");
-            
-            CheckAllPlayersReady(runner);
+            Debug.LogWarning("Cannot ready up before selecting a class.");
+            return;
         }
+
+        if (NetworkManager.Instance == null)
+        {
+            Debug.LogError("NetworkManager is null!");
+            return;
+        }
+
+        localReady = !localReady;
+        NetworkManager.Instance.SetLocalReady(localReady);
+        
+        Debug.Log($"Local ready state: {localReady}");
     }
+    
+    
 
-    private void CheckAllPlayersReady(NetworkRunner runner)
+    private void SelectClass(PlayerClass selectedClass)
     {
-        bool allReady = true;
-        int activePlayersCount = 0;
-
-        foreach (var player in runner.ActivePlayers)
+        if (LocalClassSelector.Instance == null)
         {
-            NetworkObject pObj = runner.GetPlayerObject(player);
-            if (pObj != null && pObj.TryGetComponent<NetworkedXRAvatar>(out var avatar))
-            {
-                activePlayersCount++;
-                if (!avatar.IsReady)
-                {
-                    allReady = false;
-                }
-            }
-            else
-            {
-                allReady = false;
-            }
+            Debug.LogError("LocalClassSelector Instance is null!");
+            return;
         }
 
-        if (allReady && activePlayersCount > 0)
-        {
-            Debug.Log("All players ready! Transitioning to Battle Scene...");
-            LoadBattleScene(runner);
-        }
-    }
+        var changed = LocalClassSelector.Instance.SelectClass(selectedClass);
 
-    private void LoadBattleScene(NetworkRunner runner)
-    {
-        // Fusion 2.0 uses LoadScene to load scenes across the network.
-        // Change "SampleScene" to the exact name of your battle scene.
-        runner.LoadScene("SampleScene"); 
+        if (changed && localReady)
+        {
+            localReady = false;
+            NetworkManager.Instance?.SetLocalReady(false);
+        }
     }
 }

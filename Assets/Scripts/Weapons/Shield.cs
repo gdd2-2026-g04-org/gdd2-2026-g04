@@ -1,71 +1,47 @@
+using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class Shield : MonoBehaviour
 {
     [Header("Raised Settings")]
-    [SerializeField] private float raiseThreshold = 1.2f;
+    [SerializeField, Min(0f)] private float raiseThreshold = .2f;
 
-    public bool isHeld = false;
-    public bool isRaised { get; private set; } = false;
+    public bool isHeld;
+    public bool isRaised;
+    
+    private Transform playerHead;
 
-    private XRGrabInteractable grabInteractable;
-    private Collider shieldCollider;
-    private Rigidbody rb;
-    private Transform playerRoot;
-    private bool wasTrigger;
-
-    private void Awake()
+    private void OnEnable()
     {
-        grabInteractable = GetComponent<XRGrabInteractable>();
-        shieldCollider = GetComponent<Collider>();
-        rb = GetComponent<Rigidbody>();
-
-        grabInteractable.selectEntered.AddListener(_ => 
-        {
-            isHeld = true;
-            SetShieldAsTrigger(true);           // ← Prevent damage
-        });
-
-        grabInteractable.selectExited.AddListener(_ => 
-        {
-            isHeld = false;
-            isRaised = false;
-            SetShieldAsTrigger(false);          // ← Restore normal collider
-        });
+        isHeld = true;
+        CheckHead();
     }
 
-    private void Start()
+    private void OnDisable()
     {
-        var xrOrigin = FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>();
-        if (xrOrigin != null)
-            playerRoot = xrOrigin.transform;
-
-        if (shieldCollider != null)
-            wasTrigger = shieldCollider.isTrigger;
+        isHeld = false;
+        isRaised = false;
     }
 
     private void Update()
     {
-        if (!isHeld || playerRoot == null)
+        if (!playerHead)
         {
-            isRaised = false;
-            return;
+            CheckHead();
+
+            if (!playerHead)
+            {
+                isRaised = false;
+                return;
+            }
         }
 
-        isRaised = transform.position.y > playerRoot.position.y + raiseThreshold;
+        isRaised = transform.position.y >= playerHead.position.y - raiseThreshold;
     }
 
-    private void SetShieldAsTrigger(bool makeTrigger)
+    private void CheckHead()
     {
-        if (shieldCollider != null)
-        {
-            shieldCollider.isTrigger = makeTrigger;
-        }
-
-        if (rb != null)
-        {
-            rb.isKinematic = makeTrigger;
-        }
+        playerHead = XRReferences.Instance != null ? XRReferences.Instance.head : null;
     }
 }

@@ -182,7 +182,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 1, g: 0.8026071, b: 0.3915094, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 1, g: 0.98039216, b: 0.10980392, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -202,9 +202,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 950709271}
-        m_TargetAssemblyTypeName: LocalClassManager, Assembly-CSharp
-        m_MethodName: SetWarriorClass
+      - m_Target: {fileID: 1611981251}
+        m_TargetAssemblyTypeName: LobbyUI, Assembly-CSharp
+        m_MethodName: SelectWarriorClass
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -333,12 +333,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 389512157}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.032003954, y: -0.7206029, z: -0.033336133, w: 0.69180626}
+  m_LocalPosition: {x: 5.068335, y: -0.86024815, z: 4.598674}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 418798892}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &418798873
 PrefabInstance:
@@ -670,14 +670,26 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 389512160}
+    - targetCorrespondingSourceObject: {fileID: 7917674758919744168, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 986488367}
+    - targetCorrespondingSourceObject: {fileID: 7917674758240283209, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1077920766}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 8806329115733545877, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 418798880}
+      insertIndex: 3
+      addedObject: {fileID: 418798891}
+    - targetCorrespondingSourceObject: {fileID: 8806329115733545877, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+      insertIndex: 4
+      addedObject: {fileID: 418798879}
     - targetCorrespondingSourceObject: {fileID: 8806329115733545877, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 418798879}
+      addedObject: {fileID: 418798883}
   m_SourcePrefab: {fileID: 100100000, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
 --- !u!1 &418798874 stripped
 GameObject:
@@ -719,7 +731,7 @@ MonoBehaviour:
   head: {fileID: 418798877}
   leftHand: {fileID: 418798876}
   rightHand: {fileID: 418798875}
---- !u!114 &418798880
+--- !u!114 &418798883
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -728,11 +740,33 @@ MonoBehaviour:
   m_GameObject: {fileID: 418798874}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68f3009726ea5484a8e9cf8cdb5ef260, type: 3}
+  m_Script: {fileID: 11500000, guid: 3ef0e32ed1688f84e9bb1d6ba5d353b9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GDD2.Health.PlayerHealth
-  maxHP: 100
-  classData: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::PersistentXROrigin
+--- !u!114 &418798891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 418798874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58c63d94897d73c4cb02daa92d6d6766, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  warriorSword: {fileID: 1077920765}
+  warriorShield: {fileID: 986194037}
+  mageStaff: {fileID: 0}
+  healerStaff: {fileID: 0}
+  archerBow: {fileID: 0}
+  battleSceneName: NetworkScene
+  selectedClass: 0
+--- !u!4 &418798892 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+  m_PrefabInstance: {fileID: 418798873}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &516494561
 GameObject:
   m_ObjectHideFlags: 0
@@ -1151,7 +1185,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 1, g: 0.8026071, b: 0.3915094, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 1, g: 0.98039216, b: 0.10980392, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1171,9 +1205,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 950709271}
-        m_TargetAssemblyTypeName: LocalClassManager, Assembly-CSharp
-        m_MethodName: SetWarriorClass
+      - m_Target: {fileID: 1611981251}
+        m_TargetAssemblyTypeName: LobbyUI, Assembly-CSharp
+        m_MethodName: SelectArcherClass
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1230,7 +1264,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 950709272}
-  - component: {fileID: 950709271}
+  - component: {fileID: 950709273}
   m_Layer: 0
   m_Name: LocalClassManager
   m_TagString: Untagged
@@ -1238,29 +1272,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &950709271
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 950709270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ead614eea3f373149be658a32a049c3e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LocalClassManager
-  selectedClass: 1
-  swordPrefab: {fileID: 95164210482089827, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
-  shieldPrefab: {fileID: 653812280651613251, guid: 77a1225aff5527f4f9e21d1c68942ef3, type: 3}
-  mageStaffPrefab: {fileID: 0}
-  healerStaffPrefab: {fileID: 0}
-  hunterBowPrefab: {fileID: 0}
-  warriorButton: {fileID: 117212847}
-  mageButton: {fileID: 1010059155}
-  healerButton: {fileID: 1665389599}
-  hunterButton: {fileID: 885451078}
-  readyButton: {fileID: 961631742}
 --- !u!4 &950709272
 Transform:
   m_ObjectHideFlags: 0
@@ -1276,6 +1287,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &950709273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950709270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d496ff29c08c18749af4e41af36b3d97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
 --- !u!1 &961631740
 GameObject:
   m_ObjectHideFlags: 0
@@ -1339,7 +1362,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 1, g: 0.8039216, b: 0.39215687, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 0.42751777, g: 1, b: 0.2971698, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1359,9 +1382,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 950709271}
-        m_TargetAssemblyTypeName: LocalClassManager, Assembly-CSharp
-        m_MethodName: StartBattleScene
+      - m_Target: {fileID: 1611981251}
+        m_TargetAssemblyTypeName: LobbyUI, Assembly-CSharp
+        m_MethodName: ToggleReadyState
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1409,6 +1432,112 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 961631740}
   m_CullTransparentMesh: 1
+--- !u!1 &986194037
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 986488367}
+  - component: {fileID: 989415461}
+  - component: {fileID: 988366895}
+  - component: {fileID: 989415462}
+  m_Layer: 0
+  m_Name: Shield
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &986488367
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986194037}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.05, z: 0.011}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 418798876}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &988366895
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986194037}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 42b64fdb315e3054ea757d8d1c4bcfa7, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &989415461
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986194037}
+  m_Mesh: {fileID: 4300000, guid: 0541f2578014ebc4ebdb69a05651ab52, type: 3}
+--- !u!114 &989415462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986194037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: beb7ce7209c70584cb1c03c4a8f7fb7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Shield
+  raiseThreshold: 0.15
+  isHeld: 0
+  isRaised: 0
 --- !u!1 &1010059153
 GameObject:
   m_ObjectHideFlags: 0
@@ -1472,7 +1601,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 1, g: 0.8026071, b: 0.3915094, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 1, g: 0.98039216, b: 0.10980392, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1492,9 +1621,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 950709271}
-        m_TargetAssemblyTypeName: LocalClassManager, Assembly-CSharp
-        m_MethodName: SetWarriorClass
+      - m_Target: {fileID: 1611981251}
+        m_TargetAssemblyTypeName: LobbyUI, Assembly-CSharp
+        m_MethodName: SelectMageClass
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1679,6 +1808,16 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1060832763}
   m_CullTransparentMesh: 1
+--- !u!1 &1077920765 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 95164210482089827, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+  m_PrefabInstance: {fileID: 1191285810}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1077920766 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+  m_PrefabInstance: {fileID: 1191285810}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1092791819
 GameObject:
   m_ObjectHideFlags: 0
@@ -1816,6 +1955,80 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1092791819}
   m_CullTransparentMesh: 1
+--- !u!1001 &1191285810
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 418798875}
+    m_Modifications:
+    - target: {fileID: 95164210482089827, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_Name
+      value: Sword
+      objectReference: {fileID: 0}
+    - target: {fileID: 95164210482089827, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.19
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.19
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.19
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.008
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.263
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.328
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7047281
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.28227207
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.2522138
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.60005754
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -44.47
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -1.343
+      objectReference: {fileID: 0}
+    - target: {fileID: 135013808559048122, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -80.278
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: 4716271009376777002, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
 --- !u!1 &1589795137
 GameObject:
   m_ObjectHideFlags: 0
@@ -1942,6 +2155,7 @@ GameObject:
   - component: {fileID: 1611981247}
   - component: {fileID: 1611981246}
   - component: {fileID: 1611981245}
+  - component: {fileID: 1611981251}
   m_Layer: 5
   m_Name: LobbyCanvas
   m_TagString: Untagged
@@ -2056,18 +2270,31 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1611981243}
   m_LocalRotation: {x: -0.032003954, y: 0.7206029, z: 0.033336133, w: 0.69180626}
-  m_LocalPosition: {x: 0, y: 0, z: 5.1779523}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 0, y: 0, z: 5}
+  m_LocalScale: {x: 0.03, y: 0.03, z: 0.03}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 516494562}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 30, y: 0}
+  m_AnchoredPosition: {x: 0.16, y: 3}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1611981251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611981243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50247a80c5532cb478f0dd62531185db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LobbyUI
+  readyButton: {fileID: 961631742}
 --- !u!1 &1665389597
 GameObject:
   m_ObjectHideFlags: 0
@@ -2131,7 +2358,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 1, g: 0.8026071, b: 0.3915094, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 1, g: 0.98039216, b: 0.10980392, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -2151,9 +2378,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 950709271}
-        m_TargetAssemblyTypeName: LocalClassManager, Assembly-CSharp
-        m_MethodName: SetWarriorClass
+      - m_Target: {fileID: 1611981251}
+        m_TargetAssemblyTypeName: LobbyUI, Assembly-CSharp
+        m_MethodName: SelectHealerClass
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2215,7 +2442,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2536,13 +2763,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1868826459}
   m_CullTransparentMesh: 1
+--- !u!1 &1981678496
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1981678498}
+  - component: {fileID: 1981678497}
+  m_Layer: 0
+  m_Name: GameNetworkManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1981678497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981678496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffd437c60fc55af9385b398e28a97003, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkManager
+  networkRunnerPrefab: {fileID: 1823923279288368606, guid: fbb0af1ae7cf0b94d8c5e53003f909b0, type: 3}
+  playerPrefab:
+    RawGuidValue: 56d54adeff534fc489cb5cb66aff5dfd
+  minimumPlayersToStart: 1
+--- !u!4 &1981678498
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981678496}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.22, y: 1.14, z: 3.59}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 950709272}
   - {fileID: 418798873}
-  - {fileID: 389512160}
   - {fileID: 1855796756}
   - {fileID: 1611981250}
   - {fileID: 1589795141}
+  - {fileID: 1981678498}

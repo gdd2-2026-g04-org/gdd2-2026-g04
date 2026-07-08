@@ -1,152 +1,268 @@
 using System.Collections;
 using System.Collections.Generic;
+using Fusion;
 using UnityEngine;
 using GameAssets.Health;
 
-public class BossAI : MonoBehaviour
+public class BossAI : NetworkBehaviour
 {
     [Header("Swipe Attack")]
-    [SerializeField] private float attackInterval = 5f;
-    [SerializeField] private int attackDamage = 10;
-    [SerializeField] private float damageDelay = 0.6f;
+    [SerializeField, Min(0.1f)] private float attackInterval = 5f;
+
+    [SerializeField, Min(0)] private int attackDamage = 10;
+
+    [SerializeField, Min(0f)] private float damageDelay = 0.6f;
 
     [Header("AOE Jump Earthquake")]
-    [SerializeField] private int aoeDamage = 25;
-    [SerializeField] private float aoeDamageDelay = 3.3f;
+    [SerializeField, Min(0)] private int aoeDamage = 25;
+
+    [SerializeField, Min(0f)] private float aoeDamageDelay = 3.3f;
 
     [Header("Particle Effects")]
     [SerializeField] private ParticleSystem bigChunkVFX;
     [SerializeField] private ParticleSystem smallChunkVFX;
     [SerializeField] private ParticleSystem dustVFX;
 
-    private float timer;
+    private readonly HashSet<int> triggeredThresholds = new();
+
     private HealthSystemManager healthManager;
     private BossHealth bossHealth;
     private Animator animator;
-    private bool gameOver = false;
-    private bool isAttacking = false;
-    private readonly HashSet<float> triggeredThresholds = new HashSet<float>();
 
-    private void Start()
+    private Coroutine activeAttackCoroutine;
+    private float attackTimer;
+    
+    [Networked] public NetworkBool IsAttacking { get; private set; }
+    [Networked] public NetworkBool EncounterOver { get; private set; }
+
+    public override void Spawned()
     {
-        healthManager = FindFirstObjectByType<HealthSystemManager>();
         animator = GetComponent<Animator>();
         bossHealth = GetComponent<BossHealth>();
-        timer = attackInterval;
+        
+        healthManager = FindFirstObjectByType<HealthSystemManager>();
+
+        attackTimer = attackInterval;
+
+        if (Object.HasStateAuthority)
+        {
+            IsAttacking = false;
+            EncounterOver = false;
+            triggeredThresholds.Clear();
+        }
+        
+        SubscribeToHealthManager();
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        UnsubscribeFromHealthManager();
+
+        if (activeAttackCoroutine != null)
+        {
+            StopCoroutine(activeAttackCoroutine);
+            activeAttackCoroutine = null;
+        }
     }
 
     private void OnDestroy()
     {
-        if (healthManager != null)
-        {
-            healthManager.OnEncounterVictory -= HandleGameOver;
-            healthManager.OnPartyWipe -= HandleGameOver;
-        }
+        UnsubscribeFromHealthManager();
     }
 
-    private void Update()
+    public override void FixedUpdateNetwork()
     {
-        if (gameOver || isAttacking) return;
+        if (!Object.HasStateAuthority) return;
 
-        timer -= Time.deltaTime;
-        if (timer <= 0f)
+        if (EncounterOver || IsAttacking) return;
+        
+        TryTriggerAOEAtHealthThresholds();
+
+        if (IsAttacking) return;
+        
+        attackTimer -= Runner.DeltaTime;
+
+        if (attackTimer <= 0f)
         {
             StartSwipeAttack();
-            timer = attackInterval;
         }
-
-        TryTriggerAOEAtHealthThresholds();
     }
-
+    
     private void StartSwipeAttack()
     {
-        if (gameOver || isAttacking) return;
+        if (!Object.HasStateAuthority || EncounterOver || IsAttacking) return;
 
-        isAttacking = true;
-        if (animator != null)
-            animator.SetTrigger("Swipe");
+        IsAttacking = true;
+        attackTimer = attackInterval;
+        
+        RPC_PlaySwipeAnimation();
 
-        StartCoroutine(ApplySwipeDamageAfterDelay());
+        activeAttackCoroutine = StartCoroutine(ApplySwipeDamageAfterDelay());
     }
 
     private IEnumerator ApplySwipeDamageAfterDelay()
     {
         yield return new WaitForSeconds(damageDelay);
 
-        if (!gameOver && healthManager != null)
+        if (!Object.HasStateAuthority)
+        {
+            activeAttackCoroutine = null;
+            yield break;
+        }
+        
+        if (!EncounterOver && healthManager != null && Object.HasStateAuthority)
         {
             healthManager.ApplyDamageToAllPlayers(attackDamage);
-            Debug.Log($"[BossAI] Swipe dealt {attackDamage} damage.");
+            Debug.Log($"(BossAI): Swipe dealt {attackDamage} damage.");
         }
 
-        isAttacking = false;
+        IsAttacking = false;
+        activeAttackCoroutine = null;
     }
 
-    // ===================== AOE LOGIC =====================
     private void TryTriggerAOEAtHealthThresholds()
     {
-        if (bossHealth == null || gameOver) return;
+        if (!Object.HasStateAuthority || !bossHealth || EncounterOver || !bossHealth.IsAlive ||
+            bossHealth.MaxHP <= 0) return;
 
-        float hpPercent = (float)bossHealth.CurrentHP / bossHealth.MaxHP;
+        var hpPercent = bossHealth.NormalizedHP;
 
-        if (hpPercent <= 0.75f && !triggeredThresholds.Contains(0.75f))
-            TriggerAOE(0.75f);
-        else if (hpPercent <= 0.50f && !triggeredThresholds.Contains(0.50f))
-            TriggerAOE(0.50f);
-        else if (hpPercent <= 0.25f && !triggeredThresholds.Contains(0.25f))
-            TriggerAOE(0.25f);
+        if (hpPercent <= 0.75f && !triggeredThresholds.Contains(75))
+        {
+            TriggerAOE(75); 
+        } else if (hpPercent <= 0.5f && !triggeredThresholds.Contains(50))
+        {
+            TriggerAOE(50);
+        } else if (hpPercent <= 0.25f && !triggeredThresholds.Contains(25))
+        {
+            TriggerAOE(25);
+        }
     }
 
-    private void TriggerAOE(float threshold)
+    private void TriggerAOE(int thresholdPercent)
     {
-        triggeredThresholds.Add(threshold);
-        isAttacking = true;
+        if (!Object.HasStateAuthority || EncounterOver || IsAttacking) return;
 
-        Debug.Log($"[BossAI] AOE triggered at {threshold * 100}% HP!");
+        triggeredThresholds.Add(thresholdPercent);
+        IsAttacking = true;
+        
+        Debug.Log($"(BossAI): AOE triggered at {thresholdPercent}% HP!");
+        
+        RPC_PlayAOEAnimation();
 
-        if (animator != null)
-        {
-            animator.Play("AOE", 0, 0f);
-        }
-
-        StartCoroutine(ApplyAOEDamageAfterDelay());
+        activeAttackCoroutine = StartCoroutine(ApplyAOEDamageAfterDelay());
     }
 
     private IEnumerator ApplyAOEDamageAfterDelay()
     {
         yield return new WaitForSeconds(aoeDamageDelay);
 
-        if (gameOver || healthManager == null)
+        if (!Object.HasStateAuthority)
         {
-            isAttacking = false;
+            activeAttackCoroutine = null;
             yield break;
         }
+        
+        if (EncounterOver || healthManager == null)
+        {
+            IsAttacking = false;
+            activeAttackCoroutine = null;
+            yield break;
+        }
+        
+        RPC_PlayAOEImpactEffects();
+        
+        healthManager.ApplyDamageToAllPlayers(aoeDamage);
+        
+        Debug.Log($"(BossAI): AOE dealt {aoeDamage} damage to all players!");
 
-        // === Play Particle Systems ===
+        IsAttacking = false;
+        activeAttackCoroutine = null;
+
+        attackTimer = attackInterval;
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_PlaySwipeAnimation()
+    {
+        if (animator) animator.SetTrigger("Swipe");
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_PlayAOEAnimation()
+    {
+        if (animator) animator.Play("AOE", 0, 0f);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_PlayAOEImpactEffects()
+    {
         PlayParticleEffect(bigChunkVFX);
         PlayParticleEffect(smallChunkVFX);
         PlayParticleEffect(dustVFX);
-
-        // Apply damage
-        healthManager.ApplyDamageToAllPlayers(aoeDamage);
-        Debug.Log($"AOE Earthquake dealt {aoeDamage} damage to all players.");
-
-        isAttacking = false;
     }
 
     private void PlayParticleEffect(ParticleSystem ps)
     {
-        if (ps != null)
-        {
-            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            ps.Play();
-        }
+        if (ps == null) return;
+        
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        
+        ps.Play();
+    }
+
+    private void SubscribeToHealthManager()
+    {
+        if (healthManager == null) return;
+
+        healthManager.OnEncounterVictory -= HandleGameOver;
+        healthManager.OnPartyWipe -= HandleGameOver;
+        
+        healthManager.OnEncounterVictory += HandleGameOver;
+        healthManager.OnPartyWipe += HandleGameOver;
+    }
+
+    private void UnsubscribeFromHealthManager()
+    {
+        if (healthManager == null) return;
+        healthManager.OnEncounterVictory -= HandleGameOver;
+        healthManager.OnPartyWipe -= HandleGameOver;
     }
 
     private void HandleGameOver()
     {
-        gameOver = true;
+        if (!Object.HasStateAuthority || EncounterOver) return;
+
+        EncounterOver = true;
+        IsAttacking = false;
+
+        if (activeAttackCoroutine != null)
+        {
+            StopCoroutine(activeAttackCoroutine);
+            activeAttackCoroutine = null;
+        }
+        
+        RPC_StopBossPresentation();
+        
+        Debug.Log("(BossAI): Boss has stopped attacking. Encounter ended.");
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_StopBossPresentation()
+    {
         StopAllCoroutines();
-        Debug.Log("[BossAI] Game Over - Boss stopped attacking.");
+        
+        if (animator) animator.ResetTrigger("Swipe");
+        
+        StopParticleEffect(bigChunkVFX);
+        StopParticleEffect(smallChunkVFX);
+        StopParticleEffect(dustVFX);
+    }
+    
+    private static void StopParticleEffect(ParticleSystem effect)
+    {
+        if (effect == null) return;
+        
+        effect.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 }
