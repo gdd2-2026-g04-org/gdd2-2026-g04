@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private int minimumPlayersToStart = 2;
     private bool loadBattleRequested;
     private bool checkLobbyRequested;
+
+    public event Action<int, int> LobbyStatusChanged;
 
     private void Awake()
     {
@@ -88,6 +91,31 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         }
         
         localAvatar.SetReady(ready);
+    }
+
+    public void CheckLobbyStatus()
+    {
+        if (runner == null || !runner.IsRunning)
+        {
+            LobbyStatusChanged?.Invoke(0, 0);
+            return;
+        }
+
+        var playerCount = 0;
+        var readyCount = 0;
+
+        foreach (var player in runner.ActivePlayers)
+        {
+            playerCount++;
+            
+            if (!runner.TryGetPlayerObject(player, out var playerObject)) continue;
+
+            if (!playerObject.TryGetComponent(out NetworkedXRAvatar avatar)) continue;
+
+            if (avatar.IsReady) readyCount++;
+        }
+        
+        LobbyStatusChanged?.Invoke(playerCount, readyCount);
     }
 
     public void RequestLobbyCheck()
@@ -234,6 +262,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         // In Shared Mode, each client spawns only its own local player object.
         if (player != runner.LocalPlayer)
         {
+            CheckLobbyStatus();
+            
             if (runner.IsSceneAuthority) RequestLobbyCheck();
             return;
         }
@@ -267,6 +297,9 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             
             localAvatar = spawned.GetComponent<NetworkedXRAvatar>();
             LocalPlayerHealth = spawned.GetComponent<PlayerHealth>();
+            
+            CheckLobbyStatus();
+            
             if (runner.IsSceneAuthority) RequestLobbyCheck();
         }
         else
@@ -285,6 +318,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         {
             runner.Despawn(playerObject);
         }
+        
+        CheckLobbyStatus();
         
         if (runner.IsSceneAuthority) RequestLobbyCheck();
     }

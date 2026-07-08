@@ -1,12 +1,37 @@
 using System;
 using UnityEngine;
 using Fusion;
+using TMPro;
 using UnityEngine.UI;
 
 public class LobbyUI : MonoBehaviour
 {
     private bool localReady;
     [SerializeField] private Button readyButton;
+
+    [SerializeField] private TMP_Text playerCountText;
+
+    private void Start()
+    {
+        if (!NetworkManager.Instance)
+        {
+            Debug.LogError("(LobbyUI): NetworkManager instance is null!");
+            UpdatePlayerCount(0, 0);
+            return;
+        }
+
+        NetworkManager.Instance.LobbyStatusChanged += UpdatePlayerCount;
+        
+        NetworkManager.Instance.CheckLobbyStatus();
+    }
+
+    private void OnDestroy()
+    {
+        if (NetworkManager.Instance)
+        {
+            NetworkManager.Instance.LobbyStatusChanged -= UpdatePlayerCount;
+        }
+    }
 
     public void SelectWarriorClass()
     {
@@ -67,5 +92,12 @@ public class LobbyUI : MonoBehaviour
             localReady = false;
             NetworkManager.Instance?.SetLocalReady(false);
         }
+    }
+
+    private void UpdatePlayerCount(int playerCount, int readyCount)
+    {
+        if (playerCountText == null) return;
+        
+        playerCountText.text = $"Players: {playerCount}\nReady: {readyCount} / {playerCount}";
     }
 }

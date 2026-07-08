@@ -127,6 +127,8 @@ public class NetworkedXRAvatar : NetworkBehaviour
         }
 
         IsReady = ready;
+        
+        NetworkManager.Instance?.CheckLobbyStatus();
         RPC_RequestLobbyCheck();
     }
 
@@ -146,11 +148,15 @@ public class NetworkedXRAvatar : NetworkBehaviour
     private void OnClassChanged()
     {
         ApplyClassVisuals();
+        
+        NetworkManager.Instance?.CheckLobbyStatus();
     }
 
     private void OnReadyChanged()
     {
         Debug.Log($"{name}: class = {SelectedClass}, ready = {IsReady}");
+        
+        NetworkManager.Instance?.CheckLobbyStatus();
     }
     
     private void ApplyClassVisuals()
