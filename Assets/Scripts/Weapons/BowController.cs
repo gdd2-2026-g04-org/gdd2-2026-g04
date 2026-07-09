@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using GameAssets.Health;
+using GameAssets.Weapons;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public enum BowState
@@ -24,145 +27,195 @@ public class BowController : MonoBehaviour
     [Header("Settings")]
     public float minDrawDistance = 0.5f;
     public float maxDrawDistance = 1.50f;
-
+    [SerializeField] private WeaponData weapon;
+    [SerializeField, Min(0f)] private float cooldown = 1f;
+    
     [Header("Aim")]
     public LineRenderer aimLine;
     public float aimLineLength = 20f;
 
+    [Header("Aim Stabilization")]
+    [SerializeField, Min(0.001f)]
+    private float aimSmoothTime = 0.04f;
+
+    [SerializeField, Min(0f)]
+    private float aimSmoothSpeed = 18f;
+
+    private Vector3 smoothedAimOrigin;
+    private Vector3 aimOriginVelocity;
+    private Vector3 smoothedAimDirection;
+    
     [Header("QTE")]
     public QTECircleController qteCircle;
 
     public Vector3 AimOrigin { get; private set; }
     public Vector3 AimDirection { get; private set; }
+    public float Tension { get; private set; }
+    public BowState State { get; private set;}
+    
+    private HealthSystemManager healthManager;
+    private PlayerHealth playerHealth;
+    
+    private float lastShotTime = float.NegativeInfinity;
 
-    private BowState bowState = BowState.Idle;
-
-    private float tension = 0f;
-
-
-
-    void Update()
+    private void Awake()
     {
+        if (!aimLine) return;
+
+        aimLine.useWorldSpace = true;
+        aimLine.positionCount = 2;
         aimLine.enabled = false;
+    }
 
-        Vector3 left = input.LeftHandPosition;
-        Vector3 right = input.RightHandPosition;
+    private void OnEnable()
+    {
+        ResetBow();
+        ResolveReferences();
 
-        float distance = Vector3.Distance(left, right);
-
-        if(Keyboard.current.xKey.isPressed)
-            Debug.Log("DISTANCE: " + distance);
-
-        switch (bowState)
+        if (XRReferences.Instance)
         {
-            //====================================================
-            // IDLE
-            //====================================================
+            smoothedAimOrigin = XRReferences.Instance.leftHand.position;
 
-            case BowState.Idle:
-
-                // button not pressed
-                if (!input.triggerPressed)
-                    return;
-
-                // hands too far appart
-                if (distance > minDrawDistance)
-                {
-                    Debug.Log("Hands are too far apart.");
-                    return;
-                }
-
-                // hands close enough to start the draw
-                bowState = BowState.Drawing;
-                Debug.Log("START DRAW");
-
-            break;
-
-            //====================================================
-            // DRAWING
-            //====================================================
-
-            case BowState.Drawing:
-
-                // Bow not fully drawed
-                if (!input.triggerPressed)
-                {
-                    FinishShot(ShotResult.ReleasedEarly);
-                    return;
-                }
-
-                
-                tension = Mathf.InverseLerp(minDrawDistance, maxDrawDistance, distance);
-                tension = Mathf.Clamp01(tension);
-
-                Debug.Log("Current tension: " + tension);
-
-                //Bow fully drawed
-                if (tension >= 1f)
-                {
-                    bowState = BowState.Ready;
-                    Debug.Log("BOW READY");
-
-                    qteCircle.ShowCircle();
-                }
-
-            break;
-
-            //====================================================
-            // READY
-            //====================================================
-
-            case BowState.Ready:
-
-                aimLine.enabled = true;
-                UpdateAimLine(left, right);
-
-                // Circle closed before shot
-                if (qteCircle.TimeOut)
-                {
-                    FinishShot(ShotResult.TimeOut);
-                    return;
-                }
-
-                // Button released to shoot
-                if (!input.triggerPressed)
-                {
-                    if (qteCircle.IsAimInside)
-                    {
-                        FinishShot(ShotResult.Hit);
-                    }
-                    else
-                    {
-                        FinishShot(ShotResult.Miss);
-                    }
-
-                    return;
-                }
-
-                // if tension goes down again, return to DRAWING
-                tension = Mathf.InverseLerp(minDrawDistance, maxDrawDistance, distance);
-                tension = Mathf.Clamp01(tension);
-
-                if (tension < 1f)
-                {
-                    Debug.Log("Back to DRAWING");
-
-                    qteCircle.HideCircle();
-
-                    bowState = BowState.Drawing;
-                }
-
-            break;
+            smoothedAimDirection = XRReferences.Instance.leftHand.forward;
         }
     }
 
-    private void UpdateAimLine(Vector3 left, Vector3 right)
+    private void OnDisable()
     {
-        AimOrigin = left;
-        AimDirection = (left - right).normalized;
+        ResetBow();
+    }
+
+    private void Update()
+    {
+        if (!input || !input.IsAvailable || !aimLine || !qteCircle) return;
+        
+        if (!healthManager || !playerHealth) ResolveReferences();
+
+        aimLine.enabled = false;
+
+        var leftHandPos = input.LeftHandPosition;
+        var rightHandPos = input.RightHandPosition;
+        var handDistance = Vector3.Distance(leftHandPos, rightHandPos);
+
+        switch (State)
+        {
+            case BowState.Idle:
+                UpdateIdle(handDistance);
+                break;
+            case BowState.Drawing:
+                UpdateDrawing(handDistance);
+                break;
+            case BowState.Ready:
+                UpdateReady(leftHandPos, rightHandPos, handDistance);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void UpdateIdle(float handDistance)
+    {
+        if (!input.DrawPressed) return;
+
+        if (Time.time < lastShotTime + cooldown) return;
+
+        if (handDistance > minDrawDistance) return;
+
+        State = BowState.Drawing;
+        Tension = 0f;
+        Debug.Log("(BowController): Started drawing...");
+    }
+
+    private void UpdateDrawing(float handDistance)
+    {
+        if (!input.DrawPressed)
+        {
+            FinishShot(ShotResult.ReleasedEarly);
+            return;
+        }
+        
+        UpdateTension(handDistance);
+
+        if (Tension < 1f) return;
+
+        State = BowState.Ready;
+        
+        qteCircle.ShowCircle();
+        
+        Debug.Log("(BowController): Bow is fully drawn!");
+    }
+
+    private void UpdateReady(Vector3 leftHandPos, Vector3 rightHandPos, float handDistance)
+    {
+        aimLine.enabled = true;
+        
+        UpdateAimLine(leftHandPos, rightHandPos);
+
+        if (qteCircle.TimeOut)
+        {
+            FinishShot(ShotResult.TimeOut);
+            return;
+        }
+
+        if (!input.DrawPressed)
+        {
+            var result = qteCircle.IsAimInside ? ShotResult.Hit : ShotResult.Miss;
+            
+            FinishShot(result);
+            return;
+        }
+        
+        UpdateTension(handDistance);
+
+        if (Tension < 1f)
+        {
+            qteCircle.HideCircle();
+            State = BowState.Drawing;
+            
+            Debug.Log("(BowController): Cancelled shot!");
+        }
+    }
+
+    private void UpdateTension(float handDistance)
+    {
+        Tension = Mathf.Clamp01(Mathf.InverseLerp(minDrawDistance, maxDrawDistance, handDistance));
+    }
+
+    private void UpdateAimLine(Vector3 leftHandPos, Vector3 rightHandPos)
+    {
+        var targetOrigin = leftHandPos;
+
+        var targetDir = XRReferences.Instance.leftHand.forward.normalized;
+
+        smoothedAimOrigin = Vector3.SmoothDamp(smoothedAimOrigin, targetOrigin, ref aimOriginVelocity, aimSmoothTime);
+
+        var lerpFac = 1f - Mathf.Exp(-aimSmoothSpeed * Time.deltaTime);
+
+        smoothedAimDirection = Vector3.Slerp(smoothedAimDirection, targetDir, lerpFac).normalized;
+
+        AimOrigin = smoothedAimOrigin;
+        AimDirection = smoothedAimDirection;
+        
+        aimLine.SetPosition(0, AimOrigin);
+        
+        aimLine.SetPosition(1, AimOrigin + AimDirection * aimLineLength);
+
+        /*AimOrigin = leftHandPos;
+
+        /*var dir = leftHandPos -  rightHandPos;
+
+        if (dir.sqrMagnitude <= 0.0001f)
+        {
+            AimDirection = Vector3.zero;
+            return;
+        }
+
+        AimDirection = dir.normalized;#1#
+        AimDirection = XRReferences.Instance.leftHand.forward;
 
         aimLine.SetPosition(0, AimOrigin);
-        aimLine.SetPosition(1, AimOrigin + AimDirection * aimLineLength);
+
+        aimLine.SetPosition(1, AimOrigin + AimDirection * aimLineLength);*/
     }
 
     private void FinishShot(ShotResult result)
@@ -170,26 +223,65 @@ public class BowController : MonoBehaviour
         switch (result)
         {
             case ShotResult.Hit:
-                Debug.Log("HIT"); //Damage Calcs here
-            break;
-
+                ApplySuccessfulShot();
+                break;
             case ShotResult.ReleasedEarly:
-                Debug.Log("FAILED: Released too early"); //skip turn
-            break;
-
+                Debug.Log("(BowController): Released too early!");
+                break;
             case ShotResult.TimeOut:
-                Debug.Log("FAILED: Time out"); //skip turn
-            break;
-
+                Debug.Log("(BowController): Shot timed out!");
+                break;
             case ShotResult.Miss:
-                Debug.Log("FAILED: Missed circle"); //skip turn
-            break;
+                Debug.Log("(BowController): Missed!");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(result), result, null);
         }
 
-        bowState = BowState.Idle;
-        tension = 0f;
+        lastShotTime = Time.time;
+        
+        ResetBow();
+    }
 
-        qteCircle.HideCircle();
+    private void ApplySuccessfulShot()
+    {
+        ResolveReferences();
+
+        if (!healthManager)
+        {
+            Debug.LogWarning("(BowController): Missing HealthSystemManager!");
+            return;
+        }
+
+        var boss = healthManager.Boss;
+
+        if (!boss || !boss.IsSpawned || !boss.IsAlive) return;
+
+        var damage = weapon.damage + playerHealth.Damage;
+        
+        healthManager.ApplyDamageToBoss(damage);
+        
+        Debug.Log($"(Bow): Requested {damage} against {boss.name}");
+    }
+
+    private void ResolveReferences()
+    {
+        if (!healthManager) healthManager = FindFirstObjectByType<HealthSystemManager>();
+
+        if (!playerHealth && NetworkManager.Instance) playerHealth = NetworkManager.Instance.LocalPlayerHealth;
+    }
+
+    private void ResetBow()
+    {
+        State = BowState.Idle;
+        Tension = 0f;
+
+        AimOrigin = Vector3.zero;
+        AimDirection = Vector3.zero;
+
+        if (aimLine) aimLine.enabled = false;
+        
+        if (qteCircle) qteCircle.HideCircle();
     }
 
 }

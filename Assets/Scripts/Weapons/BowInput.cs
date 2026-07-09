@@ -3,45 +3,27 @@ using UnityEngine.InputSystem;
 
 public class BowInput : MonoBehaviour
 {
-    [Header("Mode")]
-    public bool debugMode = true;
+    // [Header("Mode")]
+    // public bool keyboardDebug = true;
 
-    [Header("VR References")]
-    public Transform vrLeft;
-    public Transform vrRight;
+    [SerializeField] private InputActionReference drawAction;
+    
+    public Vector3 LeftHandPosition => XRReferences.Instance && XRReferences.Instance.leftHand ? XRReferences.Instance.leftHand.position : Vector3.zero;
+    public Vector3 RightHandPosition => XRReferences.Instance && XRReferences.Instance.rightHand ? XRReferences.Instance.rightHand.position : Vector3.zero;
 
-    [Header("Debug Hands")]
-    public Transform debugLeft;
-    public Transform debugRight;
+    public bool DrawPressed => drawAction && drawAction.action.IsPressed();
+    
+    public bool IsAvailable => XRReferences.Instance && XRReferences.Instance.leftHand && XRReferences.Instance.rightHand && drawAction;
 
-    public Vector3 LeftHandPosition { get; private set; }
-    public Vector3 RightHandPosition { get; private set; }
-
-    public bool triggerPressed { get; private set; }
-
-    void Update()
+    /*void Update()
     {
-        HandlePosition();
+        if(keyboardDebug)
         HandleInput();
     }
-
-    void HandlePosition()
-    {
-        if (debugMode)
-        {
-            LeftHandPosition = debugLeft.position;
-            RightHandPosition = debugRight.position;
-        }
-        else
-        {
-            LeftHandPosition = vrLeft.position;
-            RightHandPosition = vrRight.position;
-        }
-    }
-
+    
     void HandleInput()
     {
-        if (!debugMode) return;
+        if (!keyboardDebug) return;
 
         // LEFT HAND (WASD)
         float speed = 1.5f * Time.deltaTime;
@@ -79,5 +61,5 @@ public class BowInput : MonoBehaviour
 
         // TRIGGER BUTTON (SPACEBAR)
         triggerPressed = Keyboard.current.spaceKey.isPressed;
-    }
+    }*/
 }
