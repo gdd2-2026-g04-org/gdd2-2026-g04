@@ -8216,6 +8216,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b3a3320867791541a685da32fccb5fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAnimation
+--- !u!4 &814447921 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4615266449910883192, guid: 9d90161ec9ad84866bc22f504832630a, type: 3}
+  m_PrefabInstance: {fileID: 1997744518}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &814950858
 GameObject:
   m_ObjectHideFlags: 0
@@ -13593,6 +13598,7 @@ GameObject:
   - component: {fileID: 1478777572}
   - component: {fileID: 1478777571}
   - component: {fileID: 1478777573}
+  - component: {fileID: 1478777575}
   - component: {fileID: 1478777574}
   m_Layer: 0
   m_Name: Archer
@@ -13618,6 +13624,7 @@ MonoBehaviour:
   maxDrawDistance: 2
   aimLine: {fileID: 1478777574}
   aimLineLength: 20
+  qteCircle: {fileID: 1478777575}
 --- !u!4 &1478777572
 Transform:
   m_ObjectHideFlags: 0
@@ -13760,6 +13767,26 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &1478777575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1478777570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8d80bd2c9b98534090f30a3051d3b13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QTECircleController
+  playerCamera: {fileID: 107823127}
+  boss: {fileID: 814447921}
+  circlePrefab: {fileID: 1016284024298170930, guid: 2bc58fb052adab24d835ea0f319ecfd9, type: 3}
+  bow: {fileID: 1478777571}
+  spawnPercent: 0.8
+  heightOffset: 3
+  initialScale: 3
+  duration: 4
 --- !u!1 &1501929459
 GameObject:
   m_ObjectHideFlags: 0
@@ -17291,6 +17318,10 @@ PrefabInstance:
       value: Arena
       objectReference: {fileID: 0}
     - target: {fileID: 3210923601190572986, guid: 9d90161ec9ad84866bc22f504832630a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4612069365810820928, guid: 9d90161ec9ad84866bc22f504832630a, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}

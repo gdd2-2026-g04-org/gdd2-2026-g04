@@ -8,6 +8,14 @@ public enum BowState
     Ready
 }
 
+public enum ShotResult
+{
+    Hit,
+    ReleasedEarly,
+    TimeOut,
+    Miss
+}
+
 public class BowController : MonoBehaviour
 {
     [Header("Input Source")]
@@ -21,9 +29,17 @@ public class BowController : MonoBehaviour
     public LineRenderer aimLine;
     public float aimLineLength = 20f;
 
+    [Header("QTE")]
+    public QTECircleController qteCircle;
+
+    public Vector3 AimOrigin { get; private set; }
+    public Vector3 AimDirection { get; private set; }
+
     private BowState bowState = BowState.Idle;
 
     private float tension = 0f;
+
+
 
     void Update()
     {
@@ -71,11 +87,7 @@ public class BowController : MonoBehaviour
                 // Bow not fully drawed
                 if (!input.triggerPressed)
                 {
-                    Debug.Log("SHOT FAILED");
-
-                    bowState = BowState.Idle;
-                    tension = 0f;
-
+                    FinishShot(ShotResult.ReleasedEarly);
                     return;
                 }
 
@@ -90,6 +102,8 @@ public class BowController : MonoBehaviour
                 {
                     bowState = BowState.Ready;
                     Debug.Log("BOW READY");
+
+                    qteCircle.ShowCircle();
                 }
 
             break;
@@ -103,15 +117,24 @@ public class BowController : MonoBehaviour
                 aimLine.enabled = true;
                 UpdateAimLine(left, right);
 
+                // Circle closed before shot
+                if (qteCircle.TimeOut)
+                {
+                    FinishShot(ShotResult.TimeOut);
+                    return;
+                }
+
                 // Button released to shoot
                 if (!input.triggerPressed)
                 {
-                    Debug.Log("SHOT FIRED");
-
-                    bowState = BowState.Idle;
-                    tension = 0f;
-
-                    aimLine.enabled = false;
+                    if (qteCircle.IsAimInside)
+                    {
+                        FinishShot(ShotResult.Hit);
+                    }
+                    else
+                    {
+                        FinishShot(ShotResult.Miss);
+                    }
 
                     return;
                 }
@@ -124,6 +147,8 @@ public class BowController : MonoBehaviour
                 {
                     Debug.Log("Back to DRAWING");
 
+                    qteCircle.HideCircle();
+
                     bowState = BowState.Drawing;
                 }
 
@@ -133,10 +158,38 @@ public class BowController : MonoBehaviour
 
     private void UpdateAimLine(Vector3 left, Vector3 right)
     {
-        Vector3 aimDirection = (left - right).normalized;
+        AimOrigin = left;
+        AimDirection = (left - right).normalized;
 
-        aimLine.SetPosition(0, left);
-        aimLine.SetPosition(1, left + aimDirection * aimLineLength);
+        aimLine.SetPosition(0, AimOrigin);
+        aimLine.SetPosition(1, AimOrigin + AimDirection * aimLineLength);
+    }
+
+    private void FinishShot(ShotResult result)
+    {
+        switch (result)
+        {
+            case ShotResult.Hit:
+                Debug.Log("HIT"); //Damage Calcs here
+            break;
+
+            case ShotResult.ReleasedEarly:
+                Debug.Log("FAILED: Released too early"); //skip turn
+            break;
+
+            case ShotResult.TimeOut:
+                Debug.Log("FAILED: Time out"); //skip turn
+            break;
+
+            case ShotResult.Miss:
+                Debug.Log("FAILED: Missed circle"); //skip turn
+            break;
+        }
+
+        bowState = BowState.Idle;
+        tension = 0f;
+
+        qteCircle.HideCircle();
     }
 
 }
