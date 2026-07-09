@@ -9,6 +9,7 @@ public class LoadoutController : MonoBehaviour
     [SerializeField] private GameObject warriorShield;
     [SerializeField] private GameObject mageStaff;
     [SerializeField] private GameObject healerStaff;
+    [SerializeField] private GameObject healerBook; 
     [SerializeField] private GameObject archerBow;
 
     [Header("Scene")] [SerializeField] private string battleSceneName = "NetworkScene";
@@ -59,6 +60,7 @@ public class LoadoutController : MonoBehaviour
         SetActive(warriorShield, false);
         SetActive(mageStaff, false);
         SetActive(healerStaff, false);
+        SetActive(healerBook, false);
         SetActive(archerBow, false);
     }
 
@@ -69,24 +71,14 @@ public class LoadoutController : MonoBehaviour
     
     private void ApplyLoadout()
     {
-        SetActive(warriorSword, isBattleScene && selectedClass == PlayerClass.Warrior
-        );
+        bool isHealer = selectedClass == PlayerClass.Healer;
 
-        SetActive(
-            warriorShield, isBattleScene && selectedClass == PlayerClass.Warrior
-        );
-
-        SetActive(
-            mageStaff, isBattleScene && selectedClass == PlayerClass.Mage
-        );
-
-        SetActive(
-            healerStaff, isBattleScene && selectedClass == PlayerClass.Healer
-        );
-
-        SetActive(
-            archerBow, isBattleScene && selectedClass == PlayerClass.Archer
-        );
+        SetActive(warriorSword, isBattleScene && selectedClass == PlayerClass.Warrior);
+        SetActive(warriorShield, isBattleScene && selectedClass == PlayerClass.Warrior);
+        SetActive(mageStaff, isBattleScene && selectedClass == PlayerClass.Mage);
+        SetActive(healerStaff, isBattleScene && isHealer);
+        SetActive(healerBook, isBattleScene && isHealer); // Left hand book activated
+        SetActive(archerBow, isBattleScene && selectedClass == PlayerClass.Archer);
     }
     
     private static void SetActive(GameObject target, bool active)

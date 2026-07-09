@@ -1,0 +1,111 @@
+using GameAssets.Health;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class HealerStaff : MonoBehaviour
+{
+    [Header("Input")]
+    [SerializeField] private InputActionProperty triggerAction;
+
+    [Header("Charge Settings")]
+    [SerializeField] private float chargeDuration = 1.5f;
+
+    [Header("Projectile Settings")]
+    [SerializeField] private GameObject energyBallPrefab;
+    [SerializeField] private Transform projectileSpawnPoint;
+
+    [Header("Visual Feedback")]
+    [SerializeField] private ParticleSystem chargeParticles;
+    [SerializeField] private ParticleSystem shootParticles;
+    [SerializeField] private GameObject staffGlowObject;
+
+    private HealthSystemManager healthManager;
+    private float currentCharge;
+    private bool isFullyCharged;
+    private bool isCharging;
+
+    private void OnEnable()
+    {
+        if (triggerAction.action != null) triggerAction.action.Enable();
+        healthManager = FindFirstObjectByType<HealthSystemManager>();
+        ResetCharge();
+    }
+
+    private void OnDisable()
+    {
+        if (triggerAction.action != null) triggerAction.action.Disable();
+        ResetCharge();
+    }
+
+    private void Update()
+    {
+        if (healthManager == null || healthManager.Boss == null) return;
+
+        bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
+
+        if (triggerHeld)
+        {
+            if (!isCharging)
+            {
+                isCharging = true;
+                if (chargeParticles) chargeParticles.Play();
+            }
+
+            if (!isFullyCharged)
+            {
+                currentCharge += Time.deltaTime;
+                if (currentCharge >= chargeDuration)
+                {
+                    isFullyCharged = true;
+                    if (staffGlowObject) staffGlowObject.SetActive(true);
+                    Debug.Log("(HealerStaff): Fully Charged! Release trigger to shoot.");
+                }
+            }
+        }
+        else
+        {
+            if (isCharging)
+            {
+                if (isFullyCharged)
+                {
+                    FireEnergyBall();
+                }
+                ResetCharge();
+            }
+        }
+    }
+
+    private void FireEnergyBall()
+    {
+        if (energyBallPrefab && projectileSpawnPoint)
+        {
+            GameObject projectileObj = Instantiate(energyBallPrefab, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
+            HealerProjectile projectile = projectileObj.GetComponent<HealerProjectile>();
+
+            if (projectile)
+            {
+                projectile.Initialize(healthManager.Boss.transform, healthManager);
+            }
+            else
+            {
+                Debug.LogError("[HealerStaff] The instantiated energyBallPrefab is missing the HealerProjectile script on its root object!", energyBallPrefab);
+            }
+
+            if (shootParticles)
+            {
+                // Align the particles to the tip of the staff and fire
+                shootParticles.transform.position = projectileSpawnPoint.position;
+                shootParticles.Play(); 
+            }
+        }
+    }
+
+    private void ResetCharge()
+    {
+        currentCharge = 0f;
+        isFullyCharged = false;
+        isCharging = false;
+        if (chargeParticles) chargeParticles.Stop();
+        if (staffGlowObject) staffGlowObject.SetActive(false);
+    }
+}

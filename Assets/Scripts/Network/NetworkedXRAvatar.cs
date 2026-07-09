@@ -18,7 +18,8 @@ public class NetworkedXRAvatar : NetworkBehaviour
     [SerializeField] private GameObject mageStaffVisual;
     
     [Header("Healer Visuals")]
-    [SerializeField] private GameObject healerVisual;
+    [SerializeField] private GameObject HealerStaffVisual;
+    [SerializeField] private GameObject HealerBookVisual; 
     
     [Header("Archer Visuals")]
     [SerializeField] private GameObject archerBowVisual;
@@ -182,7 +183,8 @@ public class NetworkedXRAvatar : NetworkBehaviour
         SetActive(warriorSwordVisual, warriorActive);
         SetActive(warriorShieldVisual, warriorActive);
         SetActive(mageStaffVisual, mageActive);
-        SetActive(healerVisual, healerActive);
+        SetActive(HealerBookVisual, healerActive);
+        SetActive(HealerStaffVisual, healerActive);
         SetActive(archerBowVisual, archerActive);
     }
 
