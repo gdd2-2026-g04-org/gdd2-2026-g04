@@ -41,6 +41,14 @@ public class BowController : MonoBehaviour
     [SerializeField, Min(0f)]
     private float aimSmoothSpeed = 18f;
 
+    [Header("Arrow")]
+    [SerializeField] private Transform drawnArrow;
+    [SerializeField] private GameObject arrowPrefab;
+    [SerializeField, Min(0f)] private float arrowSpeed = 20f;
+    [SerializeField, Min(0f)] private float arrowLifetime = 4f;
+    [SerializeField] private Vector3 drawnArrowOffset = new Vector3(0f, 0f, -0.2f);
+
+    private Vector3 undrawnArrowPos;
     private Vector3 smoothedAimOrigin;
     private Vector3 aimOriginVelocity;
     private Vector3 smoothedAimDirection;
@@ -60,11 +68,18 @@ public class BowController : MonoBehaviour
 
     private void Awake()
     {
-        if (!aimLine) return;
-
-        aimLine.useWorldSpace = true;
-        aimLine.positionCount = 2;
-        aimLine.enabled = false;
+        if (aimLine)
+        {
+            aimLine.useWorldSpace = true;
+            aimLine.positionCount = 2;
+            aimLine.enabled = false;
+        }
+        
+        if (drawnArrow)
+        {
+            undrawnArrowPos = drawnArrow.localPosition;
+            drawnArrow.gameObject.SetActive(false);
+        }
     }
 
     private void OnEnable()
@@ -123,6 +138,13 @@ public class BowController : MonoBehaviour
 
         State = BowState.Drawing;
         Tension = 0f;
+
+        if (drawnArrow)
+        {
+            drawnArrow.localPosition = undrawnArrowPos;
+            
+            drawnArrow.gameObject.SetActive(true);
+        }
         Debug.Log("(BowController): Started drawing...");
     }
 
@@ -179,6 +201,17 @@ public class BowController : MonoBehaviour
     private void UpdateTension(float handDistance)
     {
         Tension = Mathf.Clamp01(Mathf.InverseLerp(minDrawDistance, maxDrawDistance, handDistance));
+        
+        UpdateDrawnArrow();
+    }
+
+    private void UpdateDrawnArrow()
+    {
+        if (!drawnArrow) return;
+
+        var fullyDrawnPos = undrawnArrowPos + drawnArrowOffset;
+
+        drawnArrow.localPosition = Vector3.Lerp(undrawnArrowPos, fullyDrawnPos, Tension);
     }
 
     private void UpdateAimLine(Vector3 leftHandPos, Vector3 rightHandPos)
@@ -199,23 +232,6 @@ public class BowController : MonoBehaviour
         aimLine.SetPosition(0, AimOrigin);
         
         aimLine.SetPosition(1, AimOrigin + AimDirection * aimLineLength);
-
-        /*AimOrigin = leftHandPos;
-
-        /*var dir = leftHandPos -  rightHandPos;
-
-        if (dir.sqrMagnitude <= 0.0001f)
-        {
-            AimDirection = Vector3.zero;
-            return;
-        }
-
-        AimDirection = dir.normalized;#1#
-        AimDirection = XRReferences.Instance.leftHand.forward;
-
-        aimLine.SetPosition(0, AimOrigin);
-
-        aimLine.SetPosition(1, AimOrigin + AimDirection * aimLineLength);*/
     }
 
     private void FinishShot(ShotResult result)
@@ -223,6 +239,7 @@ public class BowController : MonoBehaviour
         switch (result)
         {
             case ShotResult.Hit:
+                FireArrow();
                 ApplySuccessfulShot();
                 break;
             case ShotResult.ReleasedEarly:
@@ -232,6 +249,7 @@ public class BowController : MonoBehaviour
                 Debug.Log("(BowController): Shot timed out!");
                 break;
             case ShotResult.Miss:
+                FireArrow();
                 Debug.Log("(BowController): Missed!");
                 break;
             default:
@@ -241,6 +259,26 @@ public class BowController : MonoBehaviour
         lastShotTime = Time.time;
         
         ResetBow();
+    }
+
+    private void FireArrow()
+    {
+        if (!arrowPrefab || !drawnArrow) return;
+
+        var dir = AimDirection.normalized;
+
+        var arrow = Instantiate(arrowPrefab, drawnArrow.position, Quaternion.LookRotation(AimDirection, Vector3.up));
+
+        if (arrow.TryGetComponent(out Arrow arrowScript))
+        {
+            arrowScript.Initialize(dir, arrowSpeed, arrowLifetime);
+        }
+        else
+        {
+            Destroy(arrow, arrowLifetime);
+        }
+        
+        drawnArrow.gameObject.SetActive(false);
     }
 
     private void ApplySuccessfulShot()
@@ -282,6 +320,13 @@ public class BowController : MonoBehaviour
         if (aimLine) aimLine.enabled = false;
         
         if (qteCircle) qteCircle.HideCircle();
+
+        if (drawnArrow)
+        {
+            drawnArrow.localPosition = undrawnArrowPos;
+            
+            drawnArrow.gameObject.SetActive(false);
+        }
     }
 
 }
