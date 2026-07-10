@@ -23316,6 +23316,7 @@ MonoBehaviour:
   staffGlowObject: {fileID: 1993030424115494773}
   audioSource: {fileID: 1726654782}
   chargeSound: {fileID: 8300000, guid: 6a177d07bafa0024588f4d4f2e446bcf, type: 3}
+  shootSound: {fileID: 8300000, guid: d931107fed161ef4793949a95bc1e3db, type: 3}
 --- !u!82 &1726654782
 AudioSource:
   m_ObjectHideFlags: 0

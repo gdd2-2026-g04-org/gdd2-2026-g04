@@ -22,6 +22,7 @@ public class HealerStaff : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip chargeSound;
+    [SerializeField] private AudioClip shootSound;
 
     private HealthSystemManager healthManager;
     private float currentCharge;
@@ -104,7 +105,8 @@ public class HealerStaff : MonoBehaviour
             {
                 // Align the particles to the tip of the staff and fire
                 shootParticles.transform.position = projectileSpawnPoint.position;
-                shootParticles.Play(); 
+                shootParticles.Play();
+                AudioManager.PlaySoundAtSource(shootSound, audioSource);
             }
         }
     }
