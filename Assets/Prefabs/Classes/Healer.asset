@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Healer
   m_EditorClassIdentifier: Assembly-CSharp::GameAssets.Player.ClassData
   className: Healer
-  baseHP: 150
+  baseHP: 100
   baseDamage: 10

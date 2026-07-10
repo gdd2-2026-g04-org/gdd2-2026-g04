@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Mage
   m_EditorClassIdentifier: Assembly-CSharp::GameAssets.Player.ClassData
   className: Mage
-  baseHP: 150
+  baseHP: 100
   baseDamage: 10

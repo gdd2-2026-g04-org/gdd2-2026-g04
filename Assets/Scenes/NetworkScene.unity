@@ -3860,7 +3860,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7390,7 +7390,6 @@ MonoBehaviour:
   attackDamage: 10
   damageDelay: 1
   aoeDamage: 25
-  aoeDamageDelay: 3.3
   bigChunkVFX: {fileID: 963613643}
   smallChunkVFX: {fileID: 1922342211}
   dustVFX: {fileID: 1169876908}

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Warrior
   m_EditorClassIdentifier: Assembly-CSharp::GameAssets.Player.ClassData
   className: Warrior
-  baseHP: 150
+  baseHP: 100
   baseDamage: 10

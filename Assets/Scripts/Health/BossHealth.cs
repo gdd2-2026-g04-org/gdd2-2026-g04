@@ -1,86 +1,100 @@
 using System;
 using Fusion;
 using UnityEngine;
+using System.Linq;
 
 namespace GameAssets.Health
 {
   public class BossHealth : HealthComponent
   {
-      [SerializeField] private BossData data;
+    [SerializeField] private BossData data;
 
-      private Animator animator;
-      private BossAI bossAI;
+    private Animator animator;
+    private BossAI bossAI;
 
-      public BossData Data => data;
+    public BossData Data => data;
 
-      public event Action OnBossDefeated;
+    public event Action OnBossDefeated;
 
-      protected override int GetStartingMaxHP()
-      {
-          return data != null ? data.maxHP : base.GetStartingMaxHP();
-      }
+    protected override int GetStartingMaxHP()
+    {
+        if (data == null)
+            return base.GetStartingMaxHP();
 
-      public override void Spawned()
-      {
-          animator = GetComponent<Animator>();
-          bossAI = GetComponent<BossAI>();
+        int playerCount = 1;
 
-          OnDeath += HandleDeath;
-          
-          base.Spawned();
-      }
+        if (Runner != null && Runner.ActivePlayers != null)
+        {
+            playerCount = Mathf.Max(1, Runner.ActivePlayers.Count());
+        }
 
-      public override void Despawned(NetworkRunner runner, bool hasState)
-      {
-          OnDeath -= HandleDeath;
-          base.Despawned(runner, hasState);
-      }
+        int scaledHP = Mathf.RoundToInt(data.maxHP * (1f + (playerCount - 1) * 1f));
 
-      public void RequestDamage(int damage)
-      {
-          if (damage <= 0) return;
+        Debug.Log($"(BossHealth) Scaling HP for {playerCount} player(s). Final HP: {scaledHP}");
+        return scaledHP;
+    }
 
-          if (Object.HasStateAuthority)
-          {
-              ApplyDamage(damage);
-              return;
-          }
+    public override void Spawned()
+    {
+        animator = GetComponent<Animator>();
+        bossAI = GetComponent<BossAI>();
 
-          RPC_RequestDamage(damage);
-      }
+        OnDeath += HandleDeath;
+        
+        base.Spawned();
+    }
 
-      public void RequestHeal(int heal)
-      {
-          if (heal <= 0) return;
+    public override void Despawned(NetworkRunner runner, bool hasState)
+    {
+        OnDeath -= HandleDeath;
+        base.Despawned(runner, hasState);
+    }
 
-          if (Object.HasStateAuthority)
-          {
-              ApplyHealing(heal);
-              return;
-          }
+    public void RequestDamage(int damage)
+    {
+        if (damage <= 0) return;
 
-          RPC_RequestHeal(heal);
-      }
+        if (Object.HasStateAuthority)
+        {
+            ApplyDamage(damage);
+            return;
+        }
 
-      [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-      private void RPC_RequestDamage(int damage)
-      {
-          ApplyDamage(damage);
-      }
+        RPC_RequestDamage(damage);
+    }
 
-      [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-      private void RPC_RequestHeal(int heal)
-      {
-          ApplyHealing(heal);
-      }
+    public void RequestHeal(int heal)
+    {
+        if (heal <= 0) return;
 
-      private void HandleDeath()
-      {
-          if (animator != null) animator.SetTrigger("Die");
+        if (Object.HasStateAuthority)
+        {
+            ApplyHealing(heal);
+            return;
+        }
 
-          if (bossAI != null) bossAI.enabled = false;
-          
-          OnBossDefeated?.Invoke();
-      }
+        RPC_RequestHeal(heal);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RequestDamage(int damage)
+    {
+        ApplyDamage(damage);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RequestHeal(int heal)
+    {
+        ApplyHealing(heal);
+    }
+
+    private void HandleDeath()
+    {
+        if (animator != null) animator.SetTrigger("Die");
+
+        if (bossAI != null) bossAI.enabled = false;
+        
+        OnBossDefeated?.Invoke();
+    }
   }
 }
