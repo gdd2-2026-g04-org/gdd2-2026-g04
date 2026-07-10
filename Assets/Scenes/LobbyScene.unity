@@ -911,7 +911,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 395f552a322c91942ab1f946ce77cb74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::XRGestureSimulator
-  simulationKey: 117
+  legacySimulationKey: 117
   circleRadius: 0.25
   drawDuration: 1
 --- !u!1 &516494561
@@ -7891,7 +7891,7 @@ TrailRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Time: 1
+  m_Time: 1.8
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
@@ -8472,7 +8472,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
+  - {fileID: 10301, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
