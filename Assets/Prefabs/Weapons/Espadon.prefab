@@ -206,6 +206,18 @@ MonoBehaviour:
   weapon: {fileID: 11400000, guid: 759e1b815c55f9e4d824fa30b0651ca0, type: 2}
   trailRenderer: {fileID: 4166559398347679066}
   trailDelay: 0.2
+  swingAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Swing
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: afcdbfa1-aaac-4fd7-92b3-eab8b417eac6
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: -5199165633120799665, guid: e3824521e86d0ad618252a9cef1d073d, type: 3}
   attackCooldown: 1
 --- !u!1 &4716271009376777002
 GameObject:

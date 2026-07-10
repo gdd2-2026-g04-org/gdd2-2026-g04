@@ -1,6 +1,7 @@
 using System;
 using GameAssets.Health;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace GameAssets.Weapons
 {
@@ -9,10 +10,12 @@ public class SwordTrail : MonoBehaviour
   [Header("Weapon")]
   [SerializeField] private WeaponData weapon;
 
-  [Header("Trail")] [SerializeField] private TrailRenderer trailRenderer;
+  [Header("Trail")] 
+  [SerializeField] private TrailRenderer trailRenderer;
+  [SerializeField, Min(0f)] private float trailDelay = 0.2f;
 
-  [SerializeField, Min(0f)]
-  private float trailDelay = 0.2f;
+  [Header("Input")]
+  [SerializeField] private InputActionProperty swingAction;
 
   [Header("Combat")] [SerializeField, Min(0f)]
   private float attackCooldown = 1f;
@@ -47,6 +50,12 @@ public class SwordTrail : MonoBehaviour
     }
 
     ResolveReferences();
+
+    if (swingAction.action != null)
+    {
+        swingAction.action.Enable();
+        Debug.Log("[Sword] Swing Action ENABLED");
+    }
   }
 
   private void OnDisable()
@@ -72,7 +81,10 @@ public class SwordTrail : MonoBehaviour
 
     lastPosition = transform.position;
 
-    var isSwinging = curSpeed > weapon.minSpeedForTrail;
+    var velocitySwinging = curSpeed > weapon.minSpeedForTrail;
+    bool buttonHeld = IsSwingInputActive();
+
+    bool isSwinging = velocitySwinging && buttonHeld;
 
     bool attackReady = Time.time >= lastAttackTime + attackCooldown;
     
@@ -82,6 +94,16 @@ public class SwordTrail : MonoBehaviour
     if (isSwinging && !wasSwinging && attackReady) TryAttackBoss();
 
     wasSwinging = isSwinging;
+  }
+
+  private bool IsSwingInputActive()
+  {
+    if (swingAction.action != null && swingAction.action.enabled)
+    {
+        float value = swingAction.action.ReadValue<float>();
+        return value > 0.5f;
+    }
+    return false;
   }
 
   private void UpdateTrail(bool isSwinging, bool attackReady)

@@ -1,0 +1,35 @@
+{
+    "version": 1,
+    "name": "SwordInput",
+    "maps": [
+        {
+            "name": "Swing",
+            "id": "dfc0a6d1-bf41-40af-a43b-10f0f4a822c5",
+            "actions": [
+                {
+                    "name": "New action",
+                    "type": "Button",
+                    "id": "f5076c52-8430-46ed-83af-9f3c40d26f72",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "275301fd-0df8-45ec-971e-353d0f02e111",
+                    "path": "<Keyboard>/g",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
