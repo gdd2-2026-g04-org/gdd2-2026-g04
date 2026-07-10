@@ -19,6 +19,10 @@ public class HealerStaff : MonoBehaviour
     [SerializeField] private ParticleSystem shootParticles;
     [SerializeField] private GameObject staffGlowObject;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip chargeSound;
+
     private HealthSystemManager healthManager;
     private float currentCharge;
     private bool isFullyCharged;
@@ -48,7 +52,11 @@ public class HealerStaff : MonoBehaviour
             if (!isCharging)
             {
                 isCharging = true;
-                if (chargeParticles) chargeParticles.Play();
+                if (chargeParticles)
+                {
+                    chargeParticles.Play();
+                    AudioManager.PlaySoundAtSource(chargeSound, audioSource);
+                }
             }
 
             if (!isFullyCharged)
@@ -59,6 +67,7 @@ public class HealerStaff : MonoBehaviour
                     isFullyCharged = true;
                     if (staffGlowObject) staffGlowObject.SetActive(true);
                     Debug.Log("(HealerStaff): Fully Charged! Release trigger to shoot.");
+                    audioSource.Stop();
                 }
             }
         }
@@ -105,7 +114,8 @@ public class HealerStaff : MonoBehaviour
         currentCharge = 0f;
         isFullyCharged = false;
         isCharging = false;
-        if (chargeParticles) chargeParticles.Stop();
+        if (chargeParticles) chargeParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (staffGlowObject) staffGlowObject.SetActive(false);
+        audioSource.Stop();
     }
 }

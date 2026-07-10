@@ -20,6 +20,11 @@ public class SwordTrail : MonoBehaviour
   [Header("Combat")] [SerializeField, Min(0f)]
   private float attackCooldown = 1f;
 
+  [Header("Audio")] 
+  [SerializeField] private AudioSource audioSource;
+  [SerializeField] private AudioClip[] swingSounds;
+  private int swingIdx;
+
   private PlayerHealth playerHealth;
   private HealthSystemManager healthManager;
 
@@ -148,6 +153,8 @@ public class SwordTrail : MonoBehaviour
 
     var damage = weapon.damage + playerHealth.Damage;
     
+    PlaySwingSound();
+    
     healthManager.ApplyDamageToBoss(damage);
 
     lastAttackTime = Time.time;
@@ -166,6 +173,12 @@ public class SwordTrail : MonoBehaviour
     {
       playerHealth = NetworkManager.Instance.LocalPlayerHealth;
     }
+  }
+
+  private void PlaySwingSound()
+  {
+    AudioManager.PlaySoundAtSource(swingSounds[swingIdx++], audioSource);
+    if (swingIdx >= swingSounds.Length) swingIdx = 0;
   }
 }
 }

@@ -2,12 +2,15 @@ using System;
 using UnityEngine;
 using Fusion;
 using TMPro;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class LobbyUI : MonoBehaviour
 {
     private bool localReady;
     [SerializeField] private Button readyButton;
+
+    [SerializeField] private AudioClip classSelectSound;
 
     [SerializeField] private TMP_Text playerCountText;
 
@@ -19,6 +22,8 @@ public class LobbyUI : MonoBehaviour
             UpdatePlayerCount(0, 0);
             return;
         }
+        
+        EventSystem.current.SetSelectedGameObject(null);
 
         NetworkManager.Instance.LobbyStatusChanged += UpdatePlayerCount;
         
@@ -86,6 +91,7 @@ public class LobbyUI : MonoBehaviour
         }
 
         var changed = LocalClassSelector.Instance.SelectClass(selectedClass);
+        AudioManager.Instance?.PlayUISound(classSelectSound);
 
         if (changed && localReady)
         {

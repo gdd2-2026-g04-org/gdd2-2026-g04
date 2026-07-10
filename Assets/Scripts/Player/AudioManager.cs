@@ -41,6 +41,11 @@ public class AudioManager : MonoBehaviour
         if (sound && uiSource) uiSource.PlayOneShot(sound);
     }
 
+    public static void PlaySoundAtSource(AudioClip sound, AudioSource source)
+    {
+        source?.PlayOneShot(sound);
+    }
+
     public void SetMasterVolume(float vol)
     {
         SetMixerVolume("MasterVolume", vol);

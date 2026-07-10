@@ -7,6 +7,10 @@ public class Shield : MonoBehaviour
     [Header("Raised Settings")]
     [SerializeField, Min(0f)] private float raiseThreshold = .2f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip blockSound;
+
     public bool isHeld;
     public bool isRaised;
     
@@ -43,5 +47,10 @@ public class Shield : MonoBehaviour
     private void CheckHead()
     {
         playerHead = XRReferences.Instance != null ? XRReferences.Instance.head : null;
+    }
+    
+    public void PlayBlockSound()
+    {
+        AudioManager.PlaySoundAtSource(blockSound, audioSource);
     }
 }

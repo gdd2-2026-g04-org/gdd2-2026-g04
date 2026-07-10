@@ -109,13 +109,19 @@ namespace GameAssets.Health
             
             GetLocalShield();
 
-            if (localShield != null && localShield.isHeld && localShield.isRaised)
+            if (localShield && localShield.isHeld && localShield.isRaised)
             {
                 damage = Mathf.RoundToInt(damage * 0.5f);
                 
                 Debug.Log($"{name}: Shield reduced damage to {damage}!");
+                
+                localShield.PlayBlockSound();
             }
-
+            else
+            {
+                // AudioManager.PlaySoundAtSource(hurtSound, audioSource);
+            }
+            
             var damaged = ApplyDamage(damage);
 
             if (damaged && !IsAlive)

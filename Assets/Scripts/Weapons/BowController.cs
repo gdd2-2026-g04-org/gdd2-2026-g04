@@ -48,6 +48,11 @@ public class BowController : MonoBehaviour
     [SerializeField, Min(0f)] private float arrowLifetime = 4f;
     [SerializeField] private Vector3 drawnArrowOffset = new Vector3(0f, 0f, -0.2f);
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip drawSound;
+    [SerializeField] private AudioClip shootSound;
+    
     private Vector3 undrawnArrowPos;
     private Vector3 smoothedAimOrigin;
     private Vector3 aimOriginVelocity;
@@ -144,6 +149,8 @@ public class BowController : MonoBehaviour
             drawnArrow.localPosition = undrawnArrowPos;
             
             drawnArrow.gameObject.SetActive(true);
+            
+            AudioManager.PlaySoundAtSource(drawSound, audioSource);
         }
         Debug.Log("(BowController): Started drawing...");
     }
@@ -272,6 +279,8 @@ public class BowController : MonoBehaviour
         if (arrow.TryGetComponent(out Arrow arrowScript))
         {
             arrowScript.Initialize(dir, arrowSpeed, arrowLifetime);
+            audioSource.Stop();
+            AudioManager.PlaySoundAtSource(shootSound, audioSource);
         }
         else
         {
