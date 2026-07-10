@@ -17,10 +17,10 @@ public class HealerBook : MonoBehaviour
     [SerializeField] private float healCooldown = 2f;
 
     [Header("Circle Recognition Settings")]
-    [SerializeField] private float minPointDistance = 0.05f;
-    [SerializeField] private float closureThreshold = 0.4f;
-    [SerializeField] private float minRadius = 0.15f;
-    [SerializeField] private float maxRadiusVariance = 0.25f;
+    [SerializeField] private float minPointDistance = 0.03f;
+    [SerializeField] private float closureThreshold = 0.7f;
+    [SerializeField] private float minRadius = 0.12f;
+    [SerializeField] private float maxRadiusVariance = 0.45f;
 
     private List<Vector3> points = new List<Vector3>();
     private HealthSystemManager healthManager;
