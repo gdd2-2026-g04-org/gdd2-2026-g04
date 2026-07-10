@@ -8,15 +8,12 @@ public class BossAI : NetworkBehaviour
 {
     [Header("Swipe Attack")]
     [SerializeField, Min(0.1f)] private float attackInterval = 5f;
-
     [SerializeField, Min(0)] private int attackDamage = 10;
-
     [SerializeField, Min(0f)] private float damageDelay = 0.6f;
 
     [Header("AOE Jump Earthquake")]
     [SerializeField, Min(0)] private int aoeDamage = 25;
 
-    [SerializeField, Min(0f)] private float aoeDamageDelay = 3.3f;
 
     [Header("Particle Effects")]
     [SerializeField] private ParticleSystem bigChunkVFX;
@@ -149,36 +146,25 @@ public class BossAI : NetworkBehaviour
         Debug.Log($"(BossAI): AOE triggered at {thresholdPercent}% HP!");
         
         RPC_PlayAOEAnimation();
-
-        activeAttackCoroutine = StartCoroutine(ApplyAOEDamageAfterDelay());
     }
 
-    private IEnumerator ApplyAOEDamageAfterDelay()
+    public void ApplyAOEDamageAndEffects()
     {
-        yield return new WaitForSeconds(aoeDamageDelay);
+        if (!Object.HasStateAuthority) return;
 
-        if (!Object.HasStateAuthority)
-        {
-            activeAttackCoroutine = null;
-            yield break;
-        }
-        
         if (EncounterOver || healthManager == null)
         {
             IsAttacking = false;
-            activeAttackCoroutine = null;
-            yield break;
+            return;
         }
-        
+
+        // Play particles on all clients
         RPC_PlayAOEImpactEffects();
-        
+
         healthManager.ApplyDamageToAllPlayers(aoeDamage);
-        
         Debug.Log($"(BossAI): AOE dealt {aoeDamage} damage to all players!");
 
         IsAttacking = false;
-        activeAttackCoroutine = null;
-
         attackTimer = attackInterval;
     }
 
@@ -191,7 +177,7 @@ public class BossAI : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_PlayAOEAnimation()
     {
-        if (animator) animator.Play("AOE", 0, 0f);
+        if (animator) animator.SetTrigger("AOE");
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
