@@ -8,6 +8,7 @@ public class LoadoutController : MonoBehaviour
     [SerializeField] private GameObject warriorSword;
     [SerializeField] private GameObject warriorShield;
     [SerializeField] private GameObject mageStaff;
+    [SerializeField] private GameObject mageBeer;
     [SerializeField] private GameObject healerStaff;
     [SerializeField] private GameObject healerBook; 
     [SerializeField] private GameObject archerBow;
@@ -59,6 +60,7 @@ public class LoadoutController : MonoBehaviour
         SetActive(warriorSword, false);
         SetActive(warriorShield, false);
         SetActive(mageStaff, false);
+        SetActive(mageBeer, false);
         SetActive(healerStaff, false);
         SetActive(healerBook, false);
         SetActive(archerBow, false);
@@ -76,6 +78,7 @@ public class LoadoutController : MonoBehaviour
         SetActive(warriorSword, isBattleScene && selectedClass == PlayerClass.Warrior);
         SetActive(warriorShield, isBattleScene && selectedClass == PlayerClass.Warrior);
         SetActive(mageStaff, isBattleScene && selectedClass == PlayerClass.Mage);
+        SetActive(mageBeer, isBattleScene && selectedClass == PlayerClass.Mage);
         SetActive(healerStaff, isBattleScene && isHealer);
         SetActive(healerBook, isBattleScene && isHealer); // Left hand book activated
         SetActive(archerBow, isBattleScene && selectedClass == PlayerClass.Archer);

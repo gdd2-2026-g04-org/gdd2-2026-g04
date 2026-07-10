@@ -52,7 +52,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         runner.AddCallbacks(this);
         runner.ProvideInput = true;
 
-        string roomName = "FinalStandRoom";
+        string roomName = "FinalStandRoom20";
 
         var result = await runner.StartGame(new StartGameArgs
         {

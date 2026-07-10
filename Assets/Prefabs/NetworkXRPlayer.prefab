@@ -190,8 +190,9 @@ MonoBehaviour:
   - {fileID: 5260171197079644869}
   warriorSwordVisual: {fileID: 7744348145930209718}
   warriorShieldVisual: {fileID: 509657839275623764}
-  mageStaffVisual: {fileID: 0}
-  healerVisual: {fileID: 0}
+  mageStaffVisual: {fileID: 174694, guid: b43bfa1513653534694fade06a14b8b2, type: 3}
+  HealerStaffVisual: {fileID: 0}
+  HealerBookVisual: {fileID: 0}
   archerBowVisual: {fileID: 0}
   _SelectedClass: 0
   _IsReady:

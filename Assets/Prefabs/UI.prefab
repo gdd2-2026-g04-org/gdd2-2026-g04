@@ -49,9 +49,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78ce2d47685aee649aefd33637ee019d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GDD2.UI.HealthDisplay
-  target: {fileID: 0}
+  targetType: 0
   label: {fileID: 686321248154978746}
   fillBar: {fileID: 0}
+  damageBar: {fileID: 0}
+  damageBarDelay: 0.5
+  damageBarSpeed: 0.2
 --- !u!1 &1749804084126692268
 GameObject:
   m_ObjectHideFlags: 0
@@ -275,7 +278,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &2890871632085249824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -356,9 +359,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78ce2d47685aee649aefd33637ee019d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GDD2.UI.HealthDisplay
-  target: {fileID: 0}
+  targetType: 0
   label: {fileID: 934363107406322467}
   fillBar: {fileID: 0}
+  damageBar: {fileID: 0}
+  damageBarDelay: 0.5
+  damageBarSpeed: 0.2
 --- !u!1 &8451743791447721341
 GameObject:
   m_ObjectHideFlags: 0
