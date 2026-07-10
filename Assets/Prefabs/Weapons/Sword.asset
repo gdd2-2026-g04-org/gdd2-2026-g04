@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sword
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
   weaponName: Sword
-  damage: 30
+  damage: 200
   minSpeedForTrail: 6
   minSpeedForSound: 6
   soundCooldown: 0.4

@@ -11,6 +11,7 @@ namespace GameAssets.Health
 
     private Animator animator;
     private BossAI bossAI;
+    private HealthSystemManager healthManager;
 
     public BossData Data => data;
 
@@ -28,7 +29,7 @@ namespace GameAssets.Health
             playerCount = Mathf.Max(1, Runner.ActivePlayers.Count());
         }
 
-        int scaledHP = Mathf.RoundToInt(data.maxHP * (1f + (playerCount - 1) * 1f));
+        int scaledHP = Mathf.RoundToInt(data.maxHP * (1f + (playerCount - 1) * 0.8f));
 
         Debug.Log($"(BossHealth) Scaling HP for {playerCount} player(s). Final HP: {scaledHP}");
         return scaledHP;
@@ -38,9 +39,14 @@ namespace GameAssets.Health
     {
         animator = GetComponent<Animator>();
         bossAI = GetComponent<BossAI>();
+        healthManager = FindFirstObjectByType<HealthSystemManager>();
+
+        if (healthManager != null)
+        {
+            healthManager.RegisterBoss(this);
+        }
 
         OnDeath += HandleDeath;
-        
         base.Spawned();
     }
 
