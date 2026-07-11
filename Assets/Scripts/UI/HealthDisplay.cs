@@ -91,7 +91,7 @@ namespace GameAssets.UI
 
             case TargetType.Boss:
                 var healthManager = FindFirstObjectByType<HealthSystemManager>();
-                return healthManager != null ? healthManager.Boss : null;
+                return healthManager ? healthManager.Boss : null;
 
             default:
                 return null;
