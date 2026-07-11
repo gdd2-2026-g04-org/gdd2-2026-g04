@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using GameAssets.Health;
 using UnityEngine;
@@ -10,8 +11,14 @@ public class HealerBook : MonoBehaviour
 
     [Header("Visuals")]
     [SerializeField] private TrailRenderer trailRenderer;
-    [SerializeField] private ParticleSystem healSuccessParticles; 
+    [SerializeField] private ParticleSystem healSuccessParticles;
+    [SerializeField] private Material healSuccessMaterial;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip circleSound;
+    [SerializeField] private AudioClip healSound;
+    
     [Header("Heal Balance")]
     [SerializeField] private int healAmount = 25;
     [SerializeField] private float healCooldown = 2f;
@@ -24,8 +31,14 @@ public class HealerBook : MonoBehaviour
 
     private List<Vector3> points = new List<Vector3>();
     private HealthSystemManager healthManager;
+    private Material circleMat;
     private float lastHealTime = float.NegativeInfinity;
     private bool isDrawing;
+
+    private void Awake()
+    {
+        circleMat = trailRenderer.material;
+    }
 
     private void OnEnable()
     {
@@ -78,6 +91,8 @@ public bool ForceTriggerActive { get; set; }
     {
         isDrawing = true;
         points.Clear();
+
+        trailRenderer.material = circleMat;
         
         Vector3 startPos = trailRenderer ? trailRenderer.transform.position : transform.position;
         points.Add(startPos);
@@ -86,6 +101,7 @@ public bool ForceTriggerActive { get; set; }
         {
             trailRenderer.Clear();
             trailRenderer.emitting = true;
+            audioSource.Play();
         }
     }
 
@@ -108,6 +124,7 @@ public bool ForceTriggerActive { get; set; }
         if (trailRenderer)
         {
             trailRenderer.emitting = false;
+            audioSource.Stop();
         }
     }
 
@@ -189,19 +206,23 @@ public bool ForceTriggerActive { get; set; }
 
     private void TriggerPartyHeal()
     {
+        ResetDrawing();
+        
         if (healthManager)
         {
             healthManager.HealAllPlayers(healAmount);
             lastHealTime = Time.time;
             
+            trailRenderer.material = healSuccessMaterial;
+            AudioManager.PlaySoundAtSource(healSound, audioSource);
+            
             if (healSuccessParticles)
             {
                 healSuccessParticles.transform.position = transform.position;
-                healSuccessParticles.Play(); 
+                healSuccessParticles.Play();
             }
             
             Debug.Log($"(HealerBook): Restored {healAmount} HP to all party members.");
         }
-        ResetDrawing();
     }
 }

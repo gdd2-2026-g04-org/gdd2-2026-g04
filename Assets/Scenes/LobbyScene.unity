@@ -497,8 +497,16 @@ PrefabInstance:
       propertyPath: m_SmoothMotionEnabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3051491437750746931, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3435865013543954137, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       propertyPath: m_SmoothTurnEnabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4295892835532738850, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+      propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4583810496511554748, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
@@ -695,11 +703,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.70635146
+      value: 0.70635146
       objectReference: {fileID: 0}
     - target: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.03267439
+      value: 0.03267439
       objectReference: {fileID: 0}
     - target: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -707,7 +715,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -90
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -821,7 +829,7 @@ MonoBehaviour:
   warriorSword: {fileID: 1077920765}
   warriorShield: {fileID: 986194037}
   mageStaff: {fileID: 2132353392}
-  mageBeer: {fileID: 727186868}
+  mageBeer: {fileID: 0}
   healerStaff: {fileID: 1726654778}
   healerBook: {fileID: 792315208}
   archerBow: {fileID: 5310405550890890209}
@@ -6250,6 +6258,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1166785871556856, guid: 5d1ef2ca14df55f43b5fc6e5d6c35781, type: 3}
       insertIndex: -1
       addedObject: {fileID: 792315209}
+    - targetCorrespondingSourceObject: {fileID: 1166785871556856, guid: 5d1ef2ca14df55f43b5fc6e5d6c35781, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 792315213}
   m_SourcePrefab: {fileID: 100100000, guid: 5d1ef2ca14df55f43b5fc6e5d6c35781, type: 3}
 --- !u!4 &792315207 stripped
 Transform:
@@ -6287,12 +6298,113 @@ MonoBehaviour:
     m_Reference: {fileID: -4289430672226363583, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   trailRenderer: {fileID: 1701895620}
   healSuccessParticles: {fileID: 994412107}
+  healSuccessMaterial: {fileID: 2100000, guid: 81835cf8ff2750448ba8566a3915f1ee, type: 2}
+  audioSource: {fileID: 792315213}
+  circleSound: {fileID: 8300000, guid: ab42eaf14dff7f045b654c8d07c01ae1, type: 3}
+  healSound: {fileID: 8300000, guid: c6ef854648c8432458a5186b3fb41810, type: 3}
   healAmount: 25
   healCooldown: 2
   minPointDistance: 0.05
   closureThreshold: 0.25
   minRadius: 0.15
   maxRadiusVariance: 0.4
+--- !u!82 &792315213
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 792315208}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 6886142615395728320, guid: 015c08cbef919f24b9821b8a0d10d33f, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: ab42eaf14dff7f045b654c8d07c01ae1, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &797775077
 GameObject:
   m_ObjectHideFlags: 0
@@ -21134,7 +21246,7 @@ ParticleSystem:
     range: {x: 0, y: 1}
     separateAxes: 0
   RotationBySpeedModule:
-    enabled: 0
+    enabled: 1
     x:
       serializedVersion: 2
       minMaxState: 0
@@ -23309,13 +23421,14 @@ MonoBehaviour:
       m_Flags: 0
     m_Reference: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   chargeDuration: 2
-  energyBallPrefab: {fileID: 178232, guid: f633a6ba299f53549b3438bac5793fe2, type: 3}
+  energyBallPrefab: {fileID: 178232, guid: b7655bf72e766974da1d886d64900904, type: 3}
   projectileSpawnPoint: {fileID: 389369558}
   chargeParticles: {fileID: 1430435662}
   shootParticles: {fileID: 1968105052}
   staffGlowObject: {fileID: 1993030424115494773}
   audioSource: {fileID: 1726654782}
   chargeSound: {fileID: 8300000, guid: 6a177d07bafa0024588f4d4f2e446bcf, type: 3}
+  chargeFinishSound: {fileID: 8300000, guid: f41fa00670ad415479e0a2bbc615411a, type: 3}
   shootSound: {fileID: 8300000, guid: d931107fed161ef4793949a95bc1e3db, type: 3}
 --- !u!82 &1726654782
 AudioSource:
@@ -28496,7 +28609,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_LocalPosition.x

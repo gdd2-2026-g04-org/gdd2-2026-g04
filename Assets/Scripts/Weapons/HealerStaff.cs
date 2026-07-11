@@ -22,6 +22,7 @@ public class HealerStaff : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip chargeSound;
+    [SerializeField] private AudioClip chargeFinishSound;
     [SerializeField] private AudioClip shootSound;
 
     private HealthSystemManager healthManager;
@@ -67,8 +68,9 @@ public class HealerStaff : MonoBehaviour
                 {
                     isFullyCharged = true;
                     if (staffGlowObject) staffGlowObject.SetActive(true);
-                    Debug.Log("(HealerStaff): Fully Charged! Release trigger to shoot.");
                     audioSource.Stop();
+                    AudioManager.PlaySoundAtSource(chargeFinishSound, audioSource);
+                    Debug.Log("(HealerStaff): Fully Charged! Release trigger to shoot.");
                 }
             }
         }
@@ -91,7 +93,6 @@ public class HealerStaff : MonoBehaviour
         {
             GameObject projectileObj = Instantiate(energyBallPrefab, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
             HealerProjectile projectile = projectileObj.GetComponent<HealerProjectile>();
-
             if (projectile)
             {
                 projectile.Initialize(healthManager.Boss.transform, healthManager);
@@ -106,7 +107,6 @@ public class HealerStaff : MonoBehaviour
                 // Align the particles to the tip of the staff and fire
                 shootParticles.transform.position = projectileSpawnPoint.position;
                 shootParticles.Play();
-                AudioManager.PlaySoundAtSource(shootSound, audioSource);
             }
         }
     }
