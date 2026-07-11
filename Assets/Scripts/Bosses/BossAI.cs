@@ -9,7 +9,6 @@ public class BossAI : NetworkBehaviour
     [Header("Swipe Attack")]
     [SerializeField, Min(0.1f)] private float attackInterval = 5f;
     [SerializeField, Min(0)] private int attackDamage = 10;
-    [SerializeField, Min(0f)] private float damageDelay = 0.6f;
 
     [Header("AOE Jump Earthquake")]
     [SerializeField, Min(0)] private int aoeDamage = 25;
@@ -26,7 +25,6 @@ public class BossAI : NetworkBehaviour
     private BossHealth bossHealth;
     private Animator animator;
 
-    private Coroutine activeAttackCoroutine;
     private float attackTimer;
     
     [Networked] public NetworkBool IsAttacking { get; private set; }
@@ -54,12 +52,6 @@ public class BossAI : NetworkBehaviour
     public override void Despawned(NetworkRunner runner, bool hasState)
     {
         UnsubscribeFromHealthManager();
-
-        if (activeAttackCoroutine != null)
-        {
-            StopCoroutine(activeAttackCoroutine);
-            activeAttackCoroutine = null;
-        }
     }
 
     private void OnDestroy()
@@ -91,30 +83,22 @@ public class BossAI : NetworkBehaviour
 
         IsAttacking = true;
         attackTimer = attackInterval;
-        
         RPC_PlaySwipeAnimation();
-
-        activeAttackCoroutine = StartCoroutine(ApplySwipeDamageAfterDelay());
     }
 
-    private IEnumerator ApplySwipeDamageAfterDelay()
+    public void ApplySwipeDamageAndEffects()
     {
-        yield return new WaitForSeconds(damageDelay);
+        if (!Object.HasStateAuthority) return;
 
-        if (!Object.HasStateAuthority)
+        if (EncounterOver || healthManager == null)
         {
-            activeAttackCoroutine = null;
-            yield break;
-        }
-        
-        if (!EncounterOver && healthManager != null && Object.HasStateAuthority)
-        {
-            healthManager.ApplyDamageToAllPlayers(attackDamage);
-            Debug.Log($"(BossAI): Swipe dealt {attackDamage} damage.");
+            IsAttacking = false;
+            return;
         }
 
+        healthManager.ApplyDamageToAllPlayers(attackDamage);
+        Debug.Log($"(BossAI): Swipe dealt {attackDamage} damage.");
         IsAttacking = false;
-        activeAttackCoroutine = null;
     }
 
     private void TryTriggerAOEAtHealthThresholds()
@@ -221,12 +205,6 @@ public class BossAI : NetworkBehaviour
 
         EncounterOver = true;
         IsAttacking = false;
-
-        if (activeAttackCoroutine != null)
-        {
-            StopCoroutine(activeAttackCoroutine);
-            activeAttackCoroutine = null;
-        }
         
         RPC_StopBossPresentation();
         
