@@ -87,9 +87,12 @@ namespace GameAssets.UI
         switch (targetType)
         {
             case TargetType.Player:
-                return !NetworkManager.Instance ? null : NetworkManager.Instance.LocalPlayerHealth;
+                return NetworkManager.Instance ? NetworkManager.Instance.LocalPlayerHealth : null;
+
             case TargetType.Boss:
-                return FindFirstObjectByType<BossHealth>();
+                var healthManager = FindFirstObjectByType<HealthSystemManager>();
+                return healthManager != null ? healthManager.Boss : null;
+
             default:
                 return null;
         }
@@ -98,19 +101,19 @@ namespace GameAssets.UI
     private void SetTarget(HealthComponent newTarget)
     {
         if (target == newTarget) return;
-        
-        UnsubscribeFromTarget();
 
+        UnsubscribeFromTarget();
         target = newTarget;
 
-        if (!target)
+        if (target != null)
+        {
+            target.OnHealthChanged += UpdateDisplay;
+            UpdateDisplay(target.CurrentHP, target.MaxHP);
+        }
+        else
         {
             ClearDisplay();
-            return;
         }
-        
-        target.OnHealthChanged += UpdateDisplay;
-        UpdateDisplay(target.CurrentHP, target.MaxHP);
     }
 
     private void UnsubscribeFromTarget()
