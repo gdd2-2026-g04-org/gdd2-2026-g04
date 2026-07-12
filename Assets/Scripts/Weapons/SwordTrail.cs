@@ -89,7 +89,14 @@ public class SwordTrail : MonoBehaviour
     var velocitySwinging = curSpeed > weapon.minSpeedForTrail;
     bool buttonHeld = IsSwingInputActive();
 
-    bool isSwinging = velocitySwinging && buttonHeld;
+    Shield currentShield = null;
+    if (XRReferences.Instance != null)
+    {
+        currentShield = XRReferences.Instance.GetComponentInChildren<Shield>(true);
+    }
+
+    bool shieldBlocking = currentShield != null && currentShield.isRaised;
+    bool isSwinging = velocitySwinging && buttonHeld && !shieldBlocking;
 
     bool attackReady = Time.time >= lastAttackTime + attackCooldown;
     
