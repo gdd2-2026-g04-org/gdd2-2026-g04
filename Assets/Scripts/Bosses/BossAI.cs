@@ -19,6 +19,11 @@ public class BossAI : NetworkBehaviour
     [SerializeField] private ParticleSystem smallChunkVFX;
     [SerializeField] private ParticleSystem dustVFX;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip swipeSound;
+    [SerializeField] private AudioClip aoeImpactSound;
+
     private readonly HashSet<int> triggeredThresholds = new();
 
     private HealthSystemManager healthManager;
@@ -156,6 +161,9 @@ public class BossAI : NetworkBehaviour
     private void RPC_PlaySwipeAnimation()
     {
         if (animator) animator.SetTrigger("Swipe");
+
+        if (audioSource && swipeSound)
+        AudioManager.PlaySoundAtSource(swipeSound, audioSource);
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -170,6 +178,9 @@ public class BossAI : NetworkBehaviour
         PlayParticleEffect(bigChunkVFX);
         PlayParticleEffect(smallChunkVFX);
         PlayParticleEffect(dustVFX);
+
+        if (audioSource && aoeImpactSound)
+        AudioManager.PlaySoundAtSource(aoeImpactSound, audioSource);
     }
 
     private void PlayParticleEffect(ParticleSystem ps)
