@@ -727,6 +727,7 @@ MonoBehaviour:
   target: {fileID: 0}
   rotationSpeed: 12
   pitchOffset: 20
+  flip: 0
 --- !u!1 &129527388
 GameObject:
   m_ObjectHideFlags: 0
@@ -3907,7 +3908,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -14898,7 +14899,10 @@ MonoBehaviour:
   networkRunnerPrefab: {fileID: 1823923279288368606, guid: fbb0af1ae7cf0b94d8c5e53003f909b0, type: 3}
   playerPrefab:
     RawGuidValue: 56d54adeff534fc489cb5cb66aff5dfd
+  lobbySceneName: LobbyScene
+  battleSceneName: NetworkScene
   minimumPlayersToStart: 2
+  maxPlayers: 4
 --- !u!4 &1810289540
 Transform:
   m_ObjectHideFlags: 0

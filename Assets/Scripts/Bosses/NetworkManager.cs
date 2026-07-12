@@ -15,15 +15,36 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private NetworkRunner networkRunnerPrefab;
     [SerializeField] private NetworkPrefabRef playerPrefab;
 
+    [Header("Scenes")]
+    [SerializeField] private string lobbySceneName = "LobbyScene";
+    [SerializeField] private string battleSceneName = "NetworkScene";
+
     private NetworkRunner runner;
     private NetworkedXRAvatar localAvatar;
     public PlayerHealth LocalPlayerHealth { get; private set; }
 
     [SerializeField] private int minimumPlayersToStart = 2;
+    [SerializeField] private int maxPlayers = 4;
+    private int cachedRoom1Players;
+    private int cachedRoom2Players;
+    private bool roomCountReady;
+
+    public int CachedRoom1Players => cachedRoom1Players;
+    public int CachedRoom2Players => cachedRoom2Players;
+    public bool RoomCountReady => roomCountReady;
+    
+    
     private bool loadBattleRequested;
     private bool checkLobbyRequested;
+    private bool spawnLocalPlayer;
+    private bool joiningRoom;
 
     public event Action<int, int> LobbyStatusChanged;
+    public event Action<int, int> RoomCountChanged;
+    public event Action<string> RoomJoinFailed;
+
+    private const string Room1Name = "Room1";
+    private const string Room2Name = "Room2";
 
     private void Awake()
     {
@@ -45,31 +66,17 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             return;
         }
 
-        runner = Instantiate(networkRunnerPrefab);
-        runner.name = "NetworkRunner";
-        DontDestroyOnLoad(runner.gameObject);
+        CreateRunnerIfNotExists();
 
-        runner.AddCallbacks(this);
-        runner.ProvideInput = true;
-
-        string roomName = "FinalStandRoomAudio";
-
-        var result = await runner.StartGame(new StartGameArgs
-        {
-            GameMode = GameMode.Shared,
-            SessionName = roomName,
-            Scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex),
-            SceneManager = runner.GetComponent<NetworkSceneManagerDefault>()
-        });
+        var result = await runner.JoinSessionLobby(SessionLobby.Shared);
 
         if (result.Ok)
         {
-            Debug.Log($"✅ Successfully started Fusion Shared Mode. Room: {roomName}");
-            Debug.Log($"Local Player: {runner.LocalPlayer}");
+            Debug.Log($"(NetworkManager): Joined session lobby.");
         }
         else
         {
-            Debug.LogError($"❌ Failed to start: {result.ErrorMessage}");
+            Debug.LogError($"(NetworkManager): Failed to join session lobby! : {result.ErrorMessage}");
         }
     }
 
@@ -80,6 +87,63 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         checkLobbyRequested = false;
         
         CheckLobbyReady();
+    }
+
+    private void CreateRunnerIfNotExists()
+    {
+        if (runner) return;
+
+        runner = Instantiate(networkRunnerPrefab);
+        runner.name = "NetworkRunner";
+        DontDestroyOnLoad(runner.gameObject);
+        
+        runner.AddCallbacks(this);
+        runner.ProvideInput = true;
+    }
+
+    public void JoinRoom1()
+    {
+        JoinRoom(Room1Name);
+    }
+
+    public void JoinRoom2()
+    {
+        JoinRoom(Room2Name);
+    }
+
+    public async void JoinRoom(string roomName)
+    {
+        if (joiningRoom) return;
+        
+        CreateRunnerIfNotExists();
+
+        joiningRoom = true;
+
+        Debug.Log($"(NetworkManager): Joining room {roomName}...");
+
+        var result = await runner.StartGame(new StartGameArgs
+        {
+            GameMode = GameMode.Shared,
+            SessionName = roomName,
+            PlayerCount = maxPlayers,
+            IsOpen = true,
+            IsVisible = true,
+            Scene = SceneRef.FromIndex(1),
+            SceneManager = runner.GetComponent<NetworkSceneManagerDefault>()
+        });
+
+        joiningRoom = false;
+
+        if (result.Ok)
+        {
+            Debug.Log($"(NetworkManager): Successfully joined room {roomName}!");
+        }
+        else
+        {
+            Debug.LogError($"(NetworkManager): Failed to join room {roomName}! : {result.ErrorMessage}");
+            
+            RoomJoinFailed?.Invoke(result.ErrorMessage);
+        }
     }
 
     public void SetLocalReady(bool ready)
@@ -127,7 +191,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner == null || !runner.IsRunning || !runner.IsSceneAuthority || loadBattleRequested) return;
 
-        if (SceneManager.GetActiveScene().name != "LobbyScene") return;
+        if (SceneManager.GetActiveScene().name != lobbySceneName) return;
 
         var playerCount = 0;
 
@@ -160,7 +224,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         
         Debug.Log($"All {runner.ActivePlayers.Count()} connected players " + "are ready. Loading battle scene.");
 
-        runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
+        runner.LoadScene(SceneRef.FromIndex(2), LoadSceneMode.Single);
     }
     
     public void RequestBattleRestart()
@@ -180,7 +244,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
         loadBattleRequested = true;
 
-        runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
+        runner.LoadScene(SceneRef.FromIndex(2), LoadSceneMode.Single);
     }
 
     private IEnumerator SetupArenaDelay()
@@ -211,6 +275,52 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         var players = runner.ActivePlayers.OrderBy(player => player.PlayerId).ToList();
 
         return players.FindIndex(player => player == runner.LocalPlayer);
+    }
+
+    private void TrySpawnLocalPlayer()
+    {
+        if (!spawnLocalPlayer) return;
+
+        if (!runner || !runner.IsRunning) return;
+
+        if (localAvatar) return;
+
+        var activeSceneName = SceneManager.GetActiveScene().name;
+
+        if (activeSceneName != lobbySceneName && activeSceneName != battleSceneName) return;
+
+        if (!playerPrefab.IsValid)
+        {
+            Debug.LogError("(NetworkManager): Could not find player prefab.");
+            return;
+        }
+
+        var player = runner.LocalPlayer;
+
+        var spawnPos = GetSpawnPosition(player);
+        
+        var spawned = runner.Spawn(playerPrefab, spawnPos, Quaternion.identity, player);
+
+        if (!spawned)
+        {
+            Debug.LogError($"(NetworkManager): Spawn failed for local player {player}!");
+            return;
+        }
+        
+        runner.MakeDontDestroyOnLoad(spawned.gameObject);
+        runner.SetPlayerObject(player, spawned);
+
+        spawned.gameObject.name = $"NetworkPlayer_Local_{player.PlayerId}";
+        
+        localAvatar = spawned.GetComponent<NetworkedXRAvatar>();
+
+        LocalPlayerHealth = spawned.GetComponent<PlayerHealth>();
+
+        spawnLocalPlayer = false;
+        
+        CheckLobbyStatus();
+
+        if (runner.IsSceneAuthority) RequestLobbyCheck();
     }
 
     private void PositionPlayer()
@@ -268,44 +378,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             return;
         }
 
-        if (!playerPrefab.IsValid)
-        {
-            Debug.LogError("Player prefab is invalid!");
-            return;
-        }
-
-        Vector3 spawnPos = GetSpawnPosition(player);
-
-        Debug.Log($"[SPAWN] Spawning local player {player} at {spawnPos}");
-
-        NetworkObject spawned = runner.Spawn(
-            playerPrefab,
-            spawnPos,
-            Quaternion.identity,
-            player
-        );
-
-        if (spawned != null)
-        {
-            runner.MakeDontDestroyOnLoad(spawned.gameObject);
-            runner.SetPlayerObject(player, spawned);
-            spawned.gameObject.name = $"NetworkPlayer_Local_{player.PlayerId}";
-
-            Debug.Log($"✅ Spawn succeeded for local player {player}");
-            Debug.Log($"Input Authority: {spawned.InputAuthority}");
-            Debug.Log($"State Authority: {spawned.StateAuthority}");
-            
-            localAvatar = spawned.GetComponent<NetworkedXRAvatar>();
-            LocalPlayerHealth = spawned.GetComponent<PlayerHealth>();
-            
-            CheckLobbyStatus();
-            
-            if (runner.IsSceneAuthority) RequestLobbyCheck();
-        }
-        else
-        {
-            Debug.LogError($"❌ Spawn failed for local player {player}");
-        }
+        spawnLocalPlayer = true;
+        TrySpawnLocalPlayer();
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -339,13 +413,38 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) {}
 
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+    {
+        var room1Players = 0;
+        var room2Players = 0;
+
+        foreach (var session in sessionList)
+        {
+            if (session.Name == Room1Name) room1Players = session.PlayerCount;
+            if (session.Name == Room2Name) room2Players = session.PlayerCount;
+        }
+
+        cachedRoom1Players = room1Players;
+        cachedRoom2Players = room2Players;
+        roomCountReady = true;
+        
+        RoomCountChanged?.Invoke(room1Players, room2Players);
+    }
+
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
         localAvatar = null;
+        LocalPlayerHealth = null;
+        
         loadBattleRequested = false;
         checkLobbyRequested = false;
-
+        spawnLocalPlayer = false;
+        joiningRoom = false;
+        
         if (this.runner == runner) this.runner = null;
+        
+        LobbyStatusChanged?.Invoke(0, 0);
+        RoomCountChanged?.Invoke(0, 0);
     }
 
     public void OnConnectedToServer(NetworkRunner runner) {}
@@ -357,8 +456,6 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) {}
 
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) {}
-
-    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) {}
 
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) {}
 
@@ -372,12 +469,18 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         loadBattleRequested = false;
 
-        if (SceneManager.GetActiveScene().name == "NetworkScene")
+        TrySpawnLocalPlayer();
+        
+        if (SceneManager.GetActiveScene().name == battleSceneName)
         {
             StartCoroutine(SetupArenaDelay());
             
             LocalPlayerHealth?.ResetHealth();
         }
+        
+        CheckLobbyStatus();
+        
+        if (runner.IsSceneAuthority) RequestLobbyCheck();
     }
 
     public void OnSceneLoadStart(NetworkRunner runner) {}
