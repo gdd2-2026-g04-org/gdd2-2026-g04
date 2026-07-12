@@ -6298,7 +6298,7 @@ MonoBehaviour:
     m_Reference: {fileID: -4289430672226363583, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   trailRenderer: {fileID: 1701895620}
   healSuccessParticles: {fileID: 994412107}
-  healSuccessMaterial: {fileID: 2100000, guid: 81835cf8ff2750448ba8566a3915f1ee, type: 2}
+  healSuccessMaterial: {fileID: 2100000, guid: 8f5a8bb337831837bbe69c27637b4327, type: 2}
   audioSource: {fileID: 792315213}
   circleSound: {fileID: 8300000, guid: ab42eaf14dff7f045b654c8d07c01ae1, type: 3}
   healSound: {fileID: 8300000, guid: c6ef854648c8432458a5186b3fb41810, type: 3}

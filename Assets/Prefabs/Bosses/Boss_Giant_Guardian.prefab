@@ -6486,6 +6486,7 @@ GameObject:
   - component: {fileID: 7349270341761034125}
   - component: {fileID: 4255103932036709709}
   - component: {fileID: 4922153513084010753}
+  - component: {fileID: 185799357015581268}
   - component: {fileID: 5718725052388635281}
   - component: {fileID: 8050029525870870413}
   m_Layer: 0
@@ -6564,9 +6565,27 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
+  - {fileID: 185799357015581268}
   - {fileID: 5718725052388635281}
   - {fileID: 8050029525870870413}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &185799357015581268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3202963301844378388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkTransform
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!114 &5718725052388635281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6597,7 +6616,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   attackInterval: 5
   attackDamage: 10
-  damageDelay: 1
   aoeDamage: 25
   bigChunkVFX: {fileID: 2113222178421431025}
   smallChunkVFX: {fileID: 5890713327347098075}
