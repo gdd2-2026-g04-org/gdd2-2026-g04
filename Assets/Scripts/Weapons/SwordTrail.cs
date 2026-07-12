@@ -16,6 +16,7 @@ public class SwordTrail : MonoBehaviour
 
   [Header("Input")]
   [SerializeField] private InputActionProperty swingAction;
+  [SerializeField, Min(0f)] private float swingInputWindow = 1.2f;
 
   [Header("Combat")] [SerializeField, Min(0f)]
   private float attackCooldown = 1f;
@@ -32,6 +33,7 @@ public class SwordTrail : MonoBehaviour
   private float lastAttackTime = float.NegativeInfinity;
   private float lastTrailTime = float.NegativeInfinity;
   private float lastSwingSoundTime = float.NegativeInfinity;
+  private float lastSwingPressTime = float.NegativeInfinity;
 
   private bool wasSwinging;
 
@@ -47,6 +49,7 @@ public class SwordTrail : MonoBehaviour
   {
     lastPosition = transform.position;
     wasSwinging = false;
+    lastSwingPressTime = float.NegativeInfinity;
 
     if (trailRenderer)
     {
@@ -76,46 +79,44 @@ public class SwordTrail : MonoBehaviour
 
   private void LateUpdate()
   {
-    if (!weapon || !trailRenderer) return;
-    
-    var deltaTime = Time.deltaTime;
+      if (!weapon || !trailRenderer) return;
 
-    if (deltaTime <= 0f) return;
+      var deltaTime = Time.deltaTime;
+      if (deltaTime <= 0f) return;
 
-    var curSpeed = Vector3.Distance(transform.position, lastPosition) / deltaTime;
+      var curSpeed = Vector3.Distance(transform.position, lastPosition) / deltaTime;
+      lastPosition = transform.position;
 
-    lastPosition = transform.position;
+      var velocitySwinging = curSpeed > weapon.minSpeedForTrail;
 
-    var velocitySwinging = curSpeed > weapon.minSpeedForTrail;
-    bool buttonHeld = IsSwingInputActive();
+      if (swingAction.action != null && swingAction.action.enabled)
+      {
+          if (swingAction.action.WasPressedThisFrame())
+          {
+              lastSwingPressTime = Time.time;
+          }
+      }
 
-    Shield currentShield = null;
-    if (XRReferences.Instance != null)
-    {
-        currentShield = XRReferences.Instance.GetComponentInChildren<Shield>(true);
-    }
+      bool buttonArmed = Time.time <= lastSwingPressTime + swingInputWindow;
 
-    bool shieldBlocking = currentShield != null && currentShield.isRaised;
-    bool isSwinging = velocitySwinging && buttonHeld && !shieldBlocking;
+      Shield currentShield = null;
+      if (XRReferences.Instance != null)
+      {
+          currentShield = XRReferences.Instance.GetComponentInChildren<Shield>(true);
+      }
+      bool shieldBlocking = currentShield != null && currentShield.isRaised;
 
-    bool attackReady = Time.time >= lastAttackTime + attackCooldown;
-    
-    UpdateTrail(isSwinging, attackReady);
-    UpdateSound(isSwinging, attackReady);
-    
-    if (isSwinging && !wasSwinging && attackReady) TryAttackBoss();
+      bool isSwinging = velocitySwinging && buttonArmed && !shieldBlocking;
 
-    wasSwinging = isSwinging;
-  }
+      bool attackReady = Time.time >= lastAttackTime + attackCooldown;
 
-  private bool IsSwingInputActive()
-  {
-    if (swingAction.action != null && swingAction.action.enabled)
-    {
-        float value = swingAction.action.ReadValue<float>();
-        return value > 0.5f;
-    }
-    return false;
+      UpdateTrail(isSwinging, attackReady);
+      UpdateSound(isSwinging, attackReady);
+
+      if (isSwinging && !wasSwinging && attackReady) 
+          TryAttackBoss();
+
+      wasSwinging = isSwinging;
   }
 
   private void UpdateTrail(bool isSwinging, bool attackReady)
