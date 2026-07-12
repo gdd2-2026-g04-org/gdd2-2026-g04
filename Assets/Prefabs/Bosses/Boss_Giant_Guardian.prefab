@@ -6615,15 +6615,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 761f05fba002e1fbe8a40ee600e70476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  attackInterval: 5
-  attackDamage: 10
+  attackInterval: 3
+  attackDamage: 8
   aoeDamage: 25
   bigChunkVFX: {fileID: 2113222178421431025}
   smallChunkVFX: {fileID: 5890713327347098075}
   dustVFX: {fileID: 7863884122182247091}
   audioSource: {fileID: 7219727832777265129}
-  swipeSound: {fileID: 0}
-  aoeImpactSound: {fileID: 0}
+  swipeSound: {fileID: 8300000, guid: 9088147a1523644a6afc9ea6a36c6da1, type: 3}
+  aoeImpactSound: {fileID: 8300000, guid: 7324cc4cebd118aeca011a7765e1330f, type: 3}
   _IsAttacking:
     _value: 0
   _EncounterOver:

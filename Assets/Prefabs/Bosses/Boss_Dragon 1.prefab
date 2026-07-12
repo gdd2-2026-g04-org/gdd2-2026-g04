@@ -4491,7 +4491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAI
   attackInterval: 3
-  attackDamage: 10
+  attackDamage: 8
   aoeDamage: 10
   bigChunkVFX: {fileID: 0}
   smallChunkVFX: {fileID: 0}
