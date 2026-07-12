@@ -73,7 +73,7 @@ public class MageStaff : MonoBehaviour
             #endif
         }
 
-        bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
+        bool triggerHeld = triggerAction.action != null && triggerAction.action.IsPressed();
         #if UNITY_EDITOR
         if (gestureState == GestureState.Primed || gestureState == GestureState.Overcharged) triggerHeld = true;
         #endif
