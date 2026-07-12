@@ -12,6 +12,8 @@ public class LobbyUI : MonoBehaviour
 
     [SerializeField] private AudioClip classSelectSound;
 
+    [SerializeField] private TMP_Text readyText;
+
     [SerializeField] private TMP_Text playerCountText;
 
     private void Start()
@@ -76,6 +78,8 @@ public class LobbyUI : MonoBehaviour
 
         localReady = !localReady;
         NetworkManager.Instance.SetLocalReady(localReady);
+
+        if (readyText) readyText.text = localReady ? "READY" : "NOT READY";
         
         Debug.Log($"Local ready state: {localReady}");
     }

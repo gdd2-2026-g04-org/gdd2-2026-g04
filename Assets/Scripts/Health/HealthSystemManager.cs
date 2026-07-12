@@ -128,7 +128,7 @@ namespace GameAssets.Health
 
     public void HealAllPlayers(int heal)
     {
-      if (!HasSceneAuthority || encounterOver) return;
+      if (encounterOver) return;
 
       foreach (var player in players.Where(player => player && player.IsAlive))
       {

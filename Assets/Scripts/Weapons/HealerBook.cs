@@ -207,22 +207,21 @@ public bool ForceTriggerActive { get; set; }
     private void TriggerPartyHeal()
     {
         ResetDrawing();
+
+        if (!healthManager) healthManager = FindFirstObjectByType<HealthSystemManager>();
         
-        if (healthManager)
+        healthManager.HealAllPlayers(healAmount);
+        lastHealTime = Time.time;
+        
+        trailRenderer.material = healSuccessMaterial;
+        AudioManager.PlaySoundAtSource(healSound, audioSource);
+        
+        if (healSuccessParticles)
         {
-            healthManager.HealAllPlayers(healAmount);
-            lastHealTime = Time.time;
-            
-            trailRenderer.material = healSuccessMaterial;
-            AudioManager.PlaySoundAtSource(healSound, audioSource);
-            
-            if (healSuccessParticles)
-            {
-                healSuccessParticles.transform.position = transform.position;
-                healSuccessParticles.Play();
-            }
-            
-            Debug.Log($"(HealerBook): Restored {healAmount} HP to all party members.");
+            healSuccessParticles.transform.position = transform.position;
+            healSuccessParticles.Play();
         }
+        
+        Debug.Log($"(HealerBook): Restored {healAmount} HP to all party members.");
     }
 }

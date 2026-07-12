@@ -22,9 +22,10 @@ public class MainMenuUI : MonoBehaviour
         {
             NetworkManager.Instance.RoomCountChanged += UpdateRoomCount;
             NetworkManager.Instance.RoomJoinFailed += OnRoomJoinFailed;
+            NetworkManager.Instance.JoinSessionLobbyMainMenu();
         }
         
-        UpdateRoomCount(0, 0);
+        ShowRoomCountUnknown();
     }
 
     public void OpenSettings()

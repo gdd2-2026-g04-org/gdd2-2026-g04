@@ -218,10 +218,10 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: -5199165633120799665, guid: e3824521e86d0ad618252a9cef1d073d, type: 3}
-  attackCooldown: 1
+  swingInputWindow: 1
+  attackCooldown: 0.7
   audioSource: {fileID: 0}
   swingSounds: []
-  shield: {fileID: 1323043296171289878, guid: 77a1225aff5527f4f9e21d1c68942ef3, type: 3}
 --- !u!1 &4716271009376777002
 GameObject:
   m_ObjectHideFlags: 0

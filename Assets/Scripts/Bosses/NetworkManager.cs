@@ -58,16 +58,18 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         DontDestroyOnLoad(gameObject);
     }
 
-    private async void Start()
+    public async void JoinSessionLobbyMainMenu()
     {
+        if (runner && runner.IsRunning) return;
+        
         if (networkRunnerPrefab == null || !playerPrefab.IsValid)
         {
             Debug.LogError("Missing NetworkRunner Prefab or Player Prefab!");
             return;
         }
-
+        
         CreateRunnerIfNotExists();
-
+        
         var result = await runner.JoinSessionLobby(SessionLobby.Shared);
 
         if (result.Ok)
@@ -213,6 +215,27 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         }
         
         LoadBattleScene();
+    }
+
+    public async void ReturnToMainMenu()
+    {
+        loadBattleRequested = false;
+        checkLobbyRequested = false;
+        spawnLocalPlayer = false;
+        joiningRoom = false;
+
+        localAvatar = null;
+        LocalPlayerHealth = null;
+
+        if (runner)
+        {
+            await runner.Shutdown();
+            runner = null;
+        }
+        
+        if (XRReferences.Instance) Destroy(XRReferences.Instance.gameObject);
+
+        SceneManager.LoadScene(0);
     }
 
     private void LoadBattleScene()

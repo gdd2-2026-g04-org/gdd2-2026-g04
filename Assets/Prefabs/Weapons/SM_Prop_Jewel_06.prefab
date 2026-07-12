@@ -131,7 +131,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealerProjectile
   speed: 10
-  damage: 15
+  damage: 35
   lifetime: 5
   targetOffset: {x: 0, y: 4, z: 0}
   turnSpeed: 180

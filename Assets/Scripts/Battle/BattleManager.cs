@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using GameAssets.Health;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private HealthSystemManager healthManager;
     [SerializeField] private GameOverUI gameOverUI;
 
+    [SerializeField] private float gameOverDelay = 3f;
+    
     private bool encounterOver;
 
     private void Start()
@@ -32,7 +35,7 @@ public class BattleManager : MonoBehaviour
         
         Debug.Log("(BattleManager): Victory!");
         
-        gameOverUI?.ShowGameOverScreen();
+        StartCoroutine(GameOverSequence(true));
     }
 
     private void HandlePartyWipe()
@@ -43,6 +46,15 @@ public class BattleManager : MonoBehaviour
         
         Debug.Log("(BattleManager): Party wiped.");
         
-        gameOverUI?.ShowGameOverScreen();
+        StartCoroutine(GameOverSequence(false));
+    }
+
+    private IEnumerator GameOverSequence(bool victory)
+    {
+        gameOverUI?.ShowGameOver(victory);
+        
+        yield return new WaitForSeconds(gameOverDelay);
+        
+        gameOverUI?.ShowGameOverPanel();
     }
 }
