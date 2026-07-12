@@ -59,10 +59,10 @@ All Unity Asset Store assets are used under the Asset Store license. Mixamo anim
 ## Build
 
 A playable build of the game can be downloaded here:  
-**→ TODO 
+[**→ TODO ](https://vecnathewhisperedone.itch.io/final-stand-vr)
 
 You can also find the game on itch.io:  
-**→ TODO
+[**→ TODO](https://vecnathewhisperedone.itch.io/final-stand-vr)
 
 ---
 
