@@ -19,6 +19,8 @@ public class AudioManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        LoadVolumes();
     }
 
     public void PlayMusic(AudioClip music, bool loop = true)
@@ -46,19 +48,44 @@ public class AudioManager : MonoBehaviour
         source?.PlayOneShot(sound);
     }
 
+    public float GetMasterVolume()
+    {
+        return PlayerPrefs.GetFloat("MasterVolume", 1f);
+    }
+
+    public float GetMusicVolume()
+    {
+        return PlayerPrefs.GetFloat("MusicVolume", 1f);
+    }
+
+    public float GetSFXVolume()
+    {
+        return PlayerPrefs.GetFloat("SFXVolume", 1f);
+    }
+
     public void SetMasterVolume(float vol)
     {
         SetMixerVolume("MasterVolume", vol);
+        PlayerPrefs.SetFloat("MasterVolume", Mathf.Clamp01(vol));
     }
 
     public void SetMusicVolume(float vol)
     {
         SetMixerVolume("MusicVolume", vol);
+        PlayerPrefs.SetFloat("MusicVolume", Mathf.Clamp01(vol));
     }
 
     public void SetSFXVolume(float vol)
     {
         SetMixerVolume("SFXVolume", vol);
+        PlayerPrefs.SetFloat("SFXVolume", Mathf.Clamp01(vol));
+    }
+
+    private void LoadVolumes()
+    {
+        SetMixerVolume("MasterVolume", PlayerPrefs.GetFloat("MasterVolume", 1f));
+        SetMixerVolume("MusicVolume", PlayerPrefs.GetFloat("MusicVolume", 1f));
+        SetMixerVolume("SFXVolume", PlayerPrefs.GetFloat("SFXVolume", 1f));
     }
 
     private void SetMixerVolume(string parameter, float linearVol)
