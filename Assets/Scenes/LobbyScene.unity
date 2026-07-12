@@ -727,6 +727,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       insertIndex: -1
       addedObject: {fileID: 389512160}
+    - targetCorrespondingSourceObject: {fileID: 8806329115733545878, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 950709272}
     - targetCorrespondingSourceObject: {fileID: 7917674758919744168, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
       insertIndex: -1
       addedObject: {fileID: 792315207}
@@ -833,7 +836,6 @@ MonoBehaviour:
   warriorShield: {fileID: 986194037}
   mageStaff: {fileID: 2132353392}
   mageBeer: {fileID: 727186868}
-  mageShield: {fileID: 724273708}
   healerStaff: {fileID: 1726654778}
   healerBook: {fileID: 792315208}
   archerBow: {fileID: 5310405550890890209}
@@ -5894,7 +5896,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1166785871556856, guid: 5d1ef2ca14df55f43b5fc6e5d6c35781, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4220433984024252, guid: 5d1ef2ca14df55f43b5fc6e5d6c35781, type: 3}
       propertyPath: m_LocalScale.x
@@ -6869,12 +6871,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 950709270}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.03267439, y: -0.70635146, z: -0.03267439, w: 0.70635146}
+  m_LocalPosition: {x: 0.024, y: -0.053913955, z: 0.5815061}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 418798892}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &950709273
 MonoBehaviour:
@@ -49035,7 +49037,6 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 950709272}
   - {fileID: 418798873}
   - {fileID: 1855796756}
   - {fileID: 1611981250}
