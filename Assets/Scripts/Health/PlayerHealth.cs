@@ -15,6 +15,10 @@ namespace GameAssets.Health
         [SerializeField] private ClassData mageData;
         [SerializeField] private ClassData healerData;
         [SerializeField] private ClassData archerData;
+
+        [Header("Audio")]
+        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioClip hurtSound;
         
         [Networked]
         public int Damage { get; private set; }
@@ -119,7 +123,7 @@ namespace GameAssets.Health
             }
             else
             {
-                // AudioManager.PlaySoundAtSource(hurtSound, audioSource);
+                AudioManager.PlaySoundAtSource(hurtSound, audioSource);
             }
             
             var damaged = ApplyDamage(damage);
