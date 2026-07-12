@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bow
   m_EditorClassIdentifier: Assembly-CSharp::GameAssets.Weapons.WeaponData
   weaponName: Bow
-  damage: 100
+  damage: 105
   minSpeedForTrail: 15
   minSpeedForSound: 15
   soundCooldown: 0.4
