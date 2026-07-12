@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 423836264348017938}
   - component: {fileID: 7654800199467012522}
   m_Layer: 0
-  m_Name: Fireball
+  m_Name: FireBall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4866,11 +4866,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d31b2570ca9cda4b9d91944f3427b40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MageProjectile
-  damage: 15
+  damage: 25
   lifetime: 5
   flightTime: 0.9
   gravity: 5
-  velocityMultiplier: 1
   hitDistanceThreshold: 0.8
   targetOffset: {x: 0, y: 1.2, z: 0}
+  noDamagePowerThreshold: 0.25
+  powerExponent: 2.5
+  maxDamageMultiplier: 4
+  maxScaleMultiplier: 1.8
   tumbleSpeed: {x: 180, y: 90, z: 270}
