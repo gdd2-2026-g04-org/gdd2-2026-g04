@@ -26092,7 +26092,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LobbyUI
   readyButton: {fileID: 961631742}
   classSelectSound: {fileID: 8300000, guid: 773eabab63e53f242bccc855a571c2c3, type: 3}
-  readyText: {fileID: 0}
+  readyText: {fileID: 1860740983}
   playerCountText: {fileID: 1586755446}
 --- !u!114 &1611981252
 MonoBehaviour:
