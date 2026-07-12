@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class MageProjectile : MonoBehaviour
 {
-    [SerializeField] private int damage = 10;
+    [SerializeField] private int damage = 75;
     [SerializeField] private float lifetime = 5f;
 
     [Header("Throw Settings")]
@@ -15,7 +15,7 @@ public class MageProjectile : MonoBehaviour
     [Header("Power Scaling")]
     [SerializeField, Range(0f, 0.95f)] private float noDamagePowerThreshold = 0.25f;
     [SerializeField, Min(1f)] private float powerExponent = 2.5f;
-    [SerializeField, Min(1f)] private float maxDamageMultiplier = 4f;
+    [SerializeField, Min(1f)] private float maxDamageMultiplier = 16f;
     [SerializeField, Min(1f)] private float maxScaleMultiplier = 1.8f;
 
     [Header("Throw Visual")]

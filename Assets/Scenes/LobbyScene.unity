@@ -7481,7 +7481,7 @@ MonoBehaviour:
     m_Reference: {fileID: -4289430672226363583, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   manaPerDrink: 30
   drinkCooldown: 3
-  raiseThreshold: 0.3
+  headProximityThreshold: 0.15
   holdDuration: 1
   drinkParticles: {fileID: 1250147315}
 --- !u!1 &732480406
@@ -8214,6 +8214,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0.814
       objectReference: {fileID: 0}
+    - target: {fileID: 33794898914951036, guid: 5d1ef2ca14df55f43b5fc6e5d6c35781, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: be2ea4eed4dbe4645b484669d1804f87, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -42547,8 +42551,6 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
-  windUpDistance: 0.2
-  thrustSpeed: 2
   fireCooldown: 1.2
   energyBallPrefab: {fileID: 1207433386840518, guid: d427e9541d594f442acc6ac13b20177f, type: 3}
   projectileSpawnPoint: {fileID: 1077870012}
@@ -42571,12 +42573,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6fe799b334657542aa68883a7d9343e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MageQTECircleController
-  circlePrefab: {fileID: 1016284024298170930, guid: 837f2f22fd88b0d4d9f1ce1b229c78f7, type: 3}
-  mageStaff: {fileID: 2132353395}
-  spawnPercent: 0.8
-  heightOffset: 3
-  initialScale: 2
-  duration: 3
+  staffTip: {fileID: 1996680671}
+  chargeParticles: {fileID: 1996680673}
+  minParticleSize: 0.05
+  maxParticleSize: 0.5
+  minEmissionRate: 5
+  maxEmissionRate: 80
+  chargeStartColor: {r: 0.3, g: 0.5, b: 1, a: 1}
+  chargeFullColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  fullChargeBurst: {fileID: 1996680673}
+  duration: 6
+  fullChargeHoldDuration: 0.4
+  overloadShrinkDuration: 0.4
 --- !u!1 &2134654790
 GameObject:
   m_ObjectHideFlags: 0

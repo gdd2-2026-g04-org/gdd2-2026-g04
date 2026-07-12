@@ -8,8 +8,6 @@ public class MageStaff : MonoBehaviour
     [SerializeField] private InputActionProperty triggerAction;
 
     [Header("Charge Settings")]
-    [SerializeField] private float windUpDistance = 0.2f;
-    [SerializeField] private float thrustSpeed = 2.0f;
     [SerializeField] private float fireCooldown = 1.2f;
 
     [Header("Projectile Settings")]
@@ -73,27 +71,24 @@ public class MageStaff : MonoBehaviour
             #endif
         }
 
-        Vector3 currentPos = XRReferences.Instance.rightHand.position;
-
-        float dt = Time.deltaTime;
-        if (dt <= 0f) { lastHandPos = currentPos; return; }
-
-        Vector3 velocity = (currentPos - lastHandPos) / dt;
-        lastHandPos = currentPos;
-
-        Vector3 forward = XRReferences.Instance.head.forward;
-        forward.y = 0f;
-        if (forward.sqrMagnitude < 0.001f) return;
-        forward.Normalize();
-
-        float forwardSpeed = Vector3.Dot(velocity, forward);
-
-        bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
+        bool keyboardHeld = Keyboard.current != null && Keyboard.current.mKey.isPressed;
+        bool triggerHeld = keyboardHeld || (triggerAction.action != null && triggerAction.action.IsPressed());
         #if UNITY_EDITOR
         if (gestureState == GestureState.Primed || gestureState == GestureState.Overcharged) triggerHeld = true;
         #endif
         if (!triggerHeld)
         {
+            if (gestureState == GestureState.Primed && Time.time >= lastFireTime + fireCooldown)
+            {
+                float power = qteCircle ? qteCircle.Power : 0f;
+                if (qteCircle) qteCircle.HideCircle();
+                FireEnergyBall(power);
+            }
+            else if (gestureState == GestureState.Overcharged && Time.time >= lastFireTime + fireCooldown)
+            {
+                FireOvercharge();
+            }
+
             ResetCharge();
             return;
         }
@@ -101,24 +96,12 @@ public class MageStaff : MonoBehaviour
         switch (gestureState)
         {
             case GestureState.Idle:
-                if (forwardSpeed < -0.3f)
-                {
-                    gestureState = GestureState.Winding;
-                    windUpAnchor = currentPos;
-                }
+                gestureState = GestureState.Winding;
                 break;
 
             case GestureState.Winding:
-                float backDist = Vector3.Dot(windUpAnchor - currentPos, forward);
-                if (backDist >= windUpDistance)
-                {
-                    EnterPrimedState();
-                    Debug.Log("(MageStaff): Fully Charged! Release trigger to shoot.");
-                }
-                else if (forwardSpeed > 1f)
-                {
-                    gestureState = GestureState.Idle;
-                }
+                EnterPrimedState();
+                Debug.Log("(MageStaff): Fully Charged! Release trigger to shoot.");
                 break;
 
             case GestureState.Primed:
@@ -126,25 +109,10 @@ public class MageStaff : MonoBehaviour
                 {
                     gestureState = GestureState.Overcharged;
                     Debug.Log("(MageStaff): Overcharged! Throw it!");
-                    break;
-                }
-                if (forwardSpeed >= thrustSpeed && Time.time >= lastFireTime + fireCooldown)
-                {
-                    float power = qteCircle ? qteCircle.Power : 0f;
-                    if (qteCircle) qteCircle.HideCircle();
-                    FireEnergyBall(power);
-                    gestureState = GestureState.Idle;
-                    ResetCharge();
                 }
                 break;
 
             case GestureState.Overcharged:
-                if (forwardSpeed >= thrustSpeed && Time.time >= lastFireTime + fireCooldown)
-                {
-                    FireOvercharge();
-                    gestureState = GestureState.Idle;
-                    ResetCharge();
-                }
                 break;
         }
     }

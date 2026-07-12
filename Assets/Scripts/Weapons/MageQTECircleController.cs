@@ -1,37 +1,43 @@
-using GameAssets.Health;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MageQTECircleController : MonoBehaviour
 {
-    [Header("Prefab")]
-    public GameObject circlePrefab;
+    [Header("Staff Reference")]
+    public Transform staffTip;
 
-    [Header("Mage")]
-    public MageStaff mageStaff;
+    [Header("Charge Particles")]
+    public ParticleSystem chargeParticles;
+    public float minParticleSize = 0.05f;
+    public float maxParticleSize = 0.5f;
+    public float minEmissionRate = 5f;
+    public float maxEmissionRate = 80f;
+    public Color chargeStartColor = new Color(0.3f, 0.5f, 1f);
+    public Color chargeFullColor  = new Color(1f, 0.2f, 0.2f);
 
-    [Header("Placement")]
-    [Range(0f, 1f)]
-    public float spawnPercent = 0.8f;
-    public float heightOffset = 3.0f;
+    [Header("Full Charge Burst")]
+    [Tooltip("Optional one-shot ParticleSystem that fires the moment charge hits 100%.")]
+    public ParticleSystem fullChargeBurst;
 
-    [Header("Reduction")]
-    public float initialScale = 2f;
-    public float duration = 3f;
+    [Header("Timing")]
+    public float duration = 6f;
+    public float fullChargeHoldDuration = 0.4f;
+    public float overloadShrinkDuration = 0.4f;
 
-    public bool IsAimInside { get; private set; }
     public bool TimeOut { get; private set; }
     public float Power { get; private set; }
+    public bool IsAimInside => true;
 
-    private Transform playerCamera;
-    private BossHealth boss;
-    private GameObject currentCircle;
+    private bool isCharging;
+    private bool isOverloading;
+    private bool burstFired;
     private float timer;
+    private float fullChargeTimer;
+    private float overloadTimer;
 
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
-        ResolveReferences();
     }
 
     private void OnDisable()
@@ -42,92 +48,107 @@ public class MageQTECircleController : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        boss = null;
         HideCircle();
-        ResolveReferences();
     }
 
     public void ShowCircle()
     {
-        if (currentCircle != null) return;
+        if (isCharging || isOverloading) return;
 
-        ResolveReferences();
-
-        if (playerCamera == null || boss == null) return;
-
-        Vector3 position = Vector3.Lerp(playerCamera.position, boss.transform.position, spawnPercent);
-        position += Vector3.up * heightOffset;
-
-        currentCircle = Instantiate(circlePrefab, position, Quaternion.identity);
-        currentCircle.transform.LookAt(playerCamera.position, Vector3.up);
-        currentCircle.transform.localScale = Vector3.one * initialScale;
-
+        isCharging = true;
         TimeOut = false;
-        IsAimInside = false;
         Power = 0f;
         timer = duration;
-    }
+        fullChargeTimer = fullChargeHoldDuration;
+        burstFired = false;
 
-    private void Update()
-    {
-        if (currentCircle == null) return;
-
-        timer -= Time.deltaTime;
-
-        float t = Mathf.Clamp01(timer / duration);
-        Power = 1f - t;
-        currentCircle.transform.localScale = Vector3.one * (initialScale * t);
-
-        CheckAim();
-
-        if (timer <= 0f)
+        if (chargeParticles != null)
         {
-            TimeOut = true;
-            HideCircle();
+            ApplyParticleState(0f);
+            if (!chargeParticles.isPlaying)
+                chargeParticles.Play();
         }
     }
 
     public void HideCircle()
     {
-        if (currentCircle)
-        {
-            Destroy(currentCircle);
-            currentCircle = null;
-        }
+        isCharging = false;
+        isOverloading = false;
 
-        IsAimInside = false;
+        if (chargeParticles != null)
+            chargeParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
-    private void ResolveReferences()
+    private void Update()
     {
-        if (XRReferences.Instance) playerCamera = XRReferences.Instance.head;
-        if (!boss) boss = FindFirstObjectByType<BossHealth>();
+        SyncParticlePosition();
+
+        if (isOverloading)
+            UpdateOverload();
+        else if (isCharging)
+            UpdateCharging();
     }
 
-    private void CheckAim()
+    private void UpdateCharging()
     {
-        if (!currentCircle || !mageStaff || mageStaff.AimDirection.sqrMagnitude <= 0.0001f)
+        timer -= Time.deltaTime;
+        Power = Mathf.Clamp01(1f - (timer / duration));
+
+        if (chargeParticles != null)
+            ApplyParticleState(Power);
+
+        if (!burstFired && Power >= 1f)
         {
-            IsAimInside = false;
-            return;
+            burstFired = true;
+            if (fullChargeBurst != null)
+                fullChargeBurst.Play();
         }
 
-        Plane plane = new Plane(
-            currentCircle.transform.forward,
-            currentCircle.transform.position);
-
-        Ray ray = new Ray(mageStaff.AimOrigin, mageStaff.AimDirection);
-
-        if (!plane.Raycast(ray, out float distance))
+        if (timer <= 0f)
         {
-            IsAimInside = false;
-            return;
+            fullChargeTimer -= Time.deltaTime;
+            if (fullChargeTimer <= 0f)
+            {
+                isCharging = false;
+                isOverloading = true;
+                TimeOut = true;
+                overloadTimer = overloadShrinkDuration;
+            }
         }
+        else
+        {
+            fullChargeTimer = fullChargeHoldDuration;
+        }
+    }
 
-        Vector3 hitPoint = ray.GetPoint(distance);
-        float currentRadius = currentCircle.transform.localScale.x * 0.5f;
-        float offset = Vector3.Distance(hitPoint, currentCircle.transform.position);
+    private void UpdateOverload()
+    {
+        overloadTimer -= Time.deltaTime;
+        float t = Mathf.Clamp01(overloadTimer / overloadShrinkDuration);
+        ApplyParticleState(t);
 
-        IsAimInside = offset <= currentRadius;
+        if (overloadTimer <= 0f)
+        {
+            isOverloading = false;
+            HideCircle();
+        }
+    }
+
+    private void SyncParticlePosition()
+    {
+        if (chargeParticles != null && staffTip != null)
+            chargeParticles.transform.SetPositionAndRotation(staffTip.position, staffTip.rotation);
+    }
+
+    private void ApplyParticleState(float t)
+    {
+        if (chargeParticles == null) return;
+
+        var main = chargeParticles.main;
+        main.startSize = Mathf.Lerp(minParticleSize, maxParticleSize, t);
+        main.startColor = Color.Lerp(chargeStartColor, chargeFullColor, t);
+
+        var emission = chargeParticles.emission;
+        emission.rateOverTime = Mathf.Lerp(minEmissionRate, maxEmissionRate, t);
     }
 }

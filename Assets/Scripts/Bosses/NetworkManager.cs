@@ -499,11 +499,22 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             StartCoroutine(SetupArenaDelay());
             
             LocalPlayerHealth?.ResetHealth();
+            ResetPlayerMana();
         }
         
         CheckLobbyStatus();
         
         if (runner.IsSceneAuthority) RequestLobbyCheck();
+    }
+
+    private void ResetPlayerMana()
+    {
+        var mageMana = FindFirstObjectByType<MageMana>();
+        if (mageMana != null)
+        {
+            mageMana.gameObject.SetActive(false);
+            mageMana.gameObject.SetActive(true);
+        }
     }
 
     public void OnSceneLoadStart(NetworkRunner runner) {}

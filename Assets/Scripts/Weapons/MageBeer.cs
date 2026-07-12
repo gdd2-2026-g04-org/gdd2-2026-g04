@@ -9,7 +9,7 @@ public class MageBeer : MonoBehaviour
     [Header("Drink Settings")]
     [SerializeField] private int manaPerDrink = 30;
     [SerializeField] private float drinkCooldown = 3f;
-    [SerializeField] private float raiseThreshold = 0.3f;
+    [SerializeField] private float headProximityThreshold = 0.40f;
     [SerializeField] private float holdDuration = 1f;
 
     [Header("Visuals")]
@@ -42,10 +42,10 @@ public class MageBeer : MonoBehaviour
         if (Time.time < lastDrinkTime + drinkCooldown) return;
 
         bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
-        bool handRaised = XRReferences.Instance.leftHand.position.y >
-                          XRReferences.Instance.head.position.y + raiseThreshold;
+        float headDistance = Vector3.Distance(XRReferences.Instance.leftHand.position, XRReferences.Instance.head.position);
+        bool handNearHead = headDistance <= headProximityThreshold;
 
-        if (triggerHeld && handRaised)
+        if (triggerHeld && handNearHead)
         {
             holdTimer += Time.deltaTime;
 
