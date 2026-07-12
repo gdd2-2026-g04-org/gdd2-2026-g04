@@ -9,7 +9,7 @@ public class MageBeer : MonoBehaviour
     [Header("Drink Settings")]
     [SerializeField] private int manaPerDrink = 30;
     [SerializeField] private float drinkCooldown = 3f;
-    [SerializeField] private float headProximityThreshold = 0.15f;
+    [SerializeField] private float headProximityThreshold = 0.40f;
     [SerializeField] private float holdDuration = 1f;
 
     [Header("Visuals")]
