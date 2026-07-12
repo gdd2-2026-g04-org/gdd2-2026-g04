@@ -21,7 +21,7 @@ public class MageQTECircleController : MonoBehaviour
 
     [Header("Timing")]
     public float duration = 6f;
-    public float fullChargeHoldDuration = 0.2f;
+    public float fullChargeHoldDuration = 0.4f;
     public float overloadShrinkDuration = 0.4f;
 
     public bool TimeOut { get; private set; }
