@@ -73,6 +73,49 @@ public class MageStaff : MonoBehaviour
             #endif
         }
 
+        bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
+        #if UNITY_EDITOR
+        if (gestureState == GestureState.Primed || gestureState == GestureState.Overcharged) triggerHeld = true;
+        #endif
+
+        if (!triggerHeld)
+        {
+            if (gestureState == GestureState.Primed && Time.time >= lastFireTime + fireCooldown)
+            {
+                float power = qteCircle ? qteCircle.Power : 0f;
+                if (qteCircle) qteCircle.HideCircle();
+                FireEnergyBall(power);
+                ResetCharge();
+            }
+            else if (gestureState == GestureState.Overcharged && Time.time >= lastFireTime + fireCooldown)
+            {
+                FireOvercharge();
+                ResetCharge();
+            }
+            else
+            {
+                ResetCharge();
+            }
+            return;
+        }
+
+        if (gestureState == GestureState.Idle)
+        {
+            if (mana != null && !mana.HasMana(manaPerShot))
+            {
+                Debug.Log("(MageStaff): Not enough mana to charge!");
+                return;
+            }
+            EnterPrimedState();
+        }
+
+        if (gestureState == GestureState.Primed && qteCircle && qteCircle.TimeOut)
+        {
+            gestureState = GestureState.Overcharged;
+            Debug.Log("(MageStaff): Overcharged!");
+        }
+
+        /* ===== MOVEMENT LOGIC DISABLED - Button-based charging only =====
         Vector3 currentPos = XRReferences.Instance.rightHand.position;
 
         float dt = Time.deltaTime;
@@ -87,16 +130,6 @@ public class MageStaff : MonoBehaviour
         forward.Normalize();
 
         float forwardSpeed = Vector3.Dot(velocity, forward);
-
-        bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
-        #if UNITY_EDITOR
-        if (gestureState == GestureState.Primed || gestureState == GestureState.Overcharged) triggerHeld = true;
-        #endif
-        if (!triggerHeld)
-        {
-            ResetCharge();
-            return;
-        }
 
         switch (gestureState)
         {
@@ -147,6 +180,7 @@ public class MageStaff : MonoBehaviour
                 }
                 break;
         }
+        ===== END DISABLED MOVEMENT LOGIC ===== */
     }
 
     private void FireEnergyBall(float power = 0f)

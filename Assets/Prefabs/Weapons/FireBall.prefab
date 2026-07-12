@@ -537,7 +537,7 @@ ParticleSystem:
     startRotation:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.7853981
+      scalar: 1.3089969
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -4866,7 +4866,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d31b2570ca9cda4b9d91944f3427b40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MageProjectile
-  damage: 25
+  damage: 75
   lifetime: 5
   flightTime: 0.9
   gravity: 5
@@ -4874,6 +4874,6 @@ MonoBehaviour:
   targetOffset: {x: 0, y: 1.2, z: 0}
   noDamagePowerThreshold: 0.25
   powerExponent: 2.5
-  maxDamageMultiplier: 4
+  maxDamageMultiplier: 10
   maxScaleMultiplier: 1.8
   tumbleSpeed: {x: 180, y: 90, z: 270}

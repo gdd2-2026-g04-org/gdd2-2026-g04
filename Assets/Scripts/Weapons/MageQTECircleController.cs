@@ -21,6 +21,7 @@ public class MageQTECircleController : MonoBehaviour
 
     [Header("Timing")]
     public float duration = 6f;
+    public float fullChargeHoldDuration = 0.2f;
     public float overloadShrinkDuration = 0.4f;
 
     public bool TimeOut { get; private set; }
@@ -31,6 +32,7 @@ public class MageQTECircleController : MonoBehaviour
     private bool isOverloading;
     private bool burstFired;
     private float timer;
+    private float fullChargeTimer;
     private float overloadTimer;
 
     private void OnEnable()
@@ -57,6 +59,7 @@ public class MageQTECircleController : MonoBehaviour
         TimeOut = false;
         Power = 0f;
         timer = duration;
+        fullChargeTimer = fullChargeHoldDuration;
         burstFired = false;
 
         if (chargeParticles != null)
@@ -103,10 +106,18 @@ public class MageQTECircleController : MonoBehaviour
 
         if (timer <= 0f)
         {
-            isCharging = false;
-            isOverloading = true;
-            TimeOut = true;
-            overloadTimer = overloadShrinkDuration;
+            fullChargeTimer -= Time.deltaTime;
+            if (fullChargeTimer <= 0f)
+            {
+                isCharging = false;
+                isOverloading = true;
+                TimeOut = true;
+                overloadTimer = overloadShrinkDuration;
+            }
+        }
+        else
+        {
+            fullChargeTimer = fullChargeHoldDuration;
         }
     }
 
