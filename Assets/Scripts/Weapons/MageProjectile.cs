@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class MageProjectile : MonoBehaviour
 {
-    [SerializeField] private int damage = 15;
+    [SerializeField] private int damage = 10;
     [SerializeField] private float lifetime = 5f;
 
     [Header("Throw Settings")]
@@ -12,6 +12,12 @@ public class MageProjectile : MonoBehaviour
     [SerializeField] private float hitDistanceThreshold = 0.8f;
     [SerializeField] private Vector3 targetOffset = new Vector3(0f, 1.2f, 0f);
 
+    [Header("Power Scaling")]
+    [SerializeField, Range(0f, 0.95f)] private float noDamagePowerThreshold = 0.25f;
+    [SerializeField, Min(1f)] private float powerExponent = 2.5f;
+    [SerializeField, Min(1f)] private float maxDamageMultiplier = 4f;
+    [SerializeField, Min(1f)] private float maxScaleMultiplier = 1.8f;
+
     [Header("Throw Visual")]
     [SerializeField] private Vector3 tumbleSpeed = new Vector3(180f, 90f, 270f);
 
@@ -19,11 +25,14 @@ public class MageProjectile : MonoBehaviour
     private Transform target;
     private Vector3 currentVelocity;
     private bool hasHit;
+    private int finalDamage;
 
-    public void Initialize(Transform targetBoss, HealthSystemManager manager)
+    public void Initialize(Transform targetBoss, HealthSystemManager manager, float power = 0f)
     {
         target = targetBoss;
         healthSystem = manager;
+
+        ApplyPowerScaling(power);
 
         // Compute ballistic launch velocity to reach target in flightTime under gravity
         Vector3 targetPosition = target.position + targetOffset;
@@ -37,6 +46,26 @@ public class MageProjectile : MonoBehaviour
         currentVelocity = new Vector3(vFlat.x, vy, vFlat.z);
 
         Destroy(gameObject, lifetime);
+    }
+
+    private void ApplyPowerScaling(float rawPower)
+    {
+        float power = Mathf.Clamp01(rawPower);
+
+        float scaledPower = 0f;
+        if (power > noDamagePowerThreshold)
+        {
+            float normalizedPower = Mathf.InverseLerp(noDamagePowerThreshold, 1f, power);
+            scaledPower = Mathf.Pow(normalizedPower, powerExponent);
+        }
+
+        float damageMultiplier = Mathf.Lerp(0f, maxDamageMultiplier, scaledPower);
+        float scaleMultiplier = Mathf.Lerp(1f, maxScaleMultiplier, scaledPower);
+
+        finalDamage = Mathf.RoundToInt(damage * damageMultiplier);
+        transform.localScale *= scaleMultiplier;
+
+        Debug.Log($"[MageProjectile] Fireball power {(power * 100f):F0}% | scaled {(scaledPower * 100f):F0}% | damage {finalDamage} | scale x{scaleMultiplier:F2}");
     }
 
     private void Update()
@@ -77,8 +106,8 @@ public class MageProjectile : MonoBehaviour
 
         if (healthSystem)
         {
-            healthSystem.ApplyDamageToBoss(damage);
-            Debug.Log($"[MageProjectile] Hit the Boss and dealt {damage} damage.");
+            healthSystem.ApplyDamageToBoss(finalDamage);
+            Debug.Log($"[MageProjectile] Hit the Boss and dealt {finalDamage} damage.");
         }
 
         Destroy(gameObject);

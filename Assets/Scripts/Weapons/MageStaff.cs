@@ -24,10 +24,18 @@ public class MageStaff : MonoBehaviour
     [Header("Mana")]
     [SerializeField] private int manaPerShot = 15;
 
+    [Header("Overcharge")]
+    [SerializeField] private MageQTECircleController qteCircle;
+    [SerializeField] private GameObject overchargePrefab;
+    [SerializeField] private int manaPerOvercharge = 30;
+
     private HealthSystemManager healthManager;
     private MageMana mana;
 
-    private enum GestureState { Idle, Winding, Primed }
+    private enum GestureState { Idle, Winding, Primed, Overcharged }
+
+    public Vector3 AimOrigin { get; private set; }
+    public Vector3 AimDirection { get; private set; }
     private GestureState gestureState = GestureState.Idle;
     private Vector3 lastHandPos;
     private Vector3 windUpAnchor;
@@ -51,19 +59,22 @@ public class MageStaff : MonoBehaviour
 
     private void Update()
     {
-        #if UNITY_EDITOR
-        if (Keyboard.current != null && Keyboard.current.mKey.wasPressedThisFrame)
+        if (TryHandleDebugFire()) return;
+
+        ResolveReferences();
+        UpdateAim();
+
+        if (healthManager == null || healthManager.Boss == null)
         {
-            FireEnergyBall();
+            #if UNITY_EDITOR
+            if (gestureState == GestureState.Idle) return;
+            #else
             return;
+            #endif
         }
-        #endif
-
-        if (mana == null) mana = FindFirstObjectByType<MageMana>();
-
-        if (healthManager == null || healthManager.Boss == null) return;
 
         Vector3 currentPos = XRReferences.Instance.rightHand.position;
+
         float dt = Time.deltaTime;
         if (dt <= 0f) { lastHandPos = currentPos; return; }
 
@@ -78,6 +89,9 @@ public class MageStaff : MonoBehaviour
         float forwardSpeed = Vector3.Dot(velocity, forward);
 
         bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
+        #if UNITY_EDITOR
+        if (gestureState == GestureState.Primed || gestureState == GestureState.Overcharged) triggerHeld = true;
+        #endif
         if (!triggerHeld)
         {
             ResetCharge();
@@ -98,9 +112,7 @@ public class MageStaff : MonoBehaviour
                 float backDist = Vector3.Dot(windUpAnchor - currentPos, forward);
                 if (backDist >= windUpDistance)
                 {
-                    gestureState = GestureState.Primed;
-                    if (chargeParticles && !chargeParticles.isPlaying) chargeParticles.Play();
-                    if (staffGlowObject) staffGlowObject.SetActive(true);
+                    EnterPrimedState();
                     Debug.Log("(MageStaff): Fully Charged! Release trigger to shoot.");
                 }
                 else if (forwardSpeed > 1f)
@@ -110,9 +122,26 @@ public class MageStaff : MonoBehaviour
                 break;
 
             case GestureState.Primed:
+                if (qteCircle && qteCircle.TimeOut)
+                {
+                    gestureState = GestureState.Overcharged;
+                    Debug.Log("(MageStaff): Overcharged! Throw it!");
+                    break;
+                }
                 if (forwardSpeed >= thrustSpeed && Time.time >= lastFireTime + fireCooldown)
                 {
-                    FireEnergyBall();
+                    float power = qteCircle ? qteCircle.Power : 0f;
+                    if (qteCircle) qteCircle.HideCircle();
+                    FireEnergyBall(power);
+                    gestureState = GestureState.Idle;
+                    ResetCharge();
+                }
+                break;
+
+            case GestureState.Overcharged:
+                if (forwardSpeed >= thrustSpeed && Time.time >= lastFireTime + fireCooldown)
+                {
+                    FireOvercharge();
                     gestureState = GestureState.Idle;
                     ResetCharge();
                 }
@@ -120,21 +149,30 @@ public class MageStaff : MonoBehaviour
         }
     }
 
-    private void FireEnergyBall()
+    private void FireEnergyBall(float power = 0f)
     {
-        if (mana != null && !mana.TrySpend(manaPerShot))
+        if (healthManager == null || healthManager.Boss == null)
+        {
+            Debug.LogWarning("[MageStaff] Can't fire — no boss in scene.");
             return;
+        }
+
+        if (mana != null && !mana.TrySpend(manaPerShot))
+        {
+            Debug.LogWarning("[MageStaff] Not enough mana.");
+            return;
+        }
 
         GameObject projectileObj = Instantiate(energyBallPrefab, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
         MageProjectile projectile = projectileObj.GetComponent<MageProjectile>();
 
         if (projectile)
         {
-            projectile.Initialize(healthManager.Boss.transform, healthManager);
+            projectile.Initialize(healthManager.Boss.transform, healthManager, power);
         }
         else
         {
-            Debug.LogError("[MageStaff] The instantiated energyBallPrefab is missing the MageProjectile script on its root object!", energyBallPrefab);
+            Debug.LogError("[MageStaff] energyBallPrefab is missing MageProjectile on root!", energyBallPrefab);
         }
 
         if (shootParticles)
@@ -146,10 +184,93 @@ public class MageStaff : MonoBehaviour
         lastFireTime = Time.time;
     }
 
+    private void FireOvercharge()
+    {
+        if (overchargePrefab == null)
+        {
+            Debug.LogWarning("[MageStaff] No overcharge prefab assigned.");
+            return;
+        }
+        if (healthManager == null || healthManager.Boss == null)
+        {
+            Debug.LogWarning("[MageStaff] Can't overcharge fire — no boss in scene.");
+            return;
+        }
+        if (mana != null && !mana.TrySpend(manaPerOvercharge))
+        {
+            Debug.LogWarning("[MageStaff] Not enough mana for overcharge.");
+            return;
+        }
+
+        GameObject obj = Instantiate(overchargePrefab, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
+        MageProjectile projectile = obj.GetComponent<MageProjectile>();
+        if (projectile)
+            projectile.Initialize(healthManager.Boss.transform, healthManager);
+        else
+            Debug.LogError("[MageStaff] overchargePrefab is missing MageProjectile!", overchargePrefab);
+
+        lastFireTime = Time.time;
+    }
+
+    private void ResolveReferences()
+    {
+        if (healthManager == null) healthManager = FindFirstObjectByType<HealthSystemManager>();
+        if (mana == null) mana = FindFirstObjectByType<MageMana>();
+    }
+
+    private void UpdateAim()
+    {
+        if (XRReferences.Instance?.rightHand == null || XRReferences.Instance?.head == null) return;
+
+        AimOrigin = XRReferences.Instance.rightHand.position;
+        AimDirection = XRReferences.Instance.head.forward;
+    }
+
+    private void EnterPrimedState()
+    {
+        gestureState = GestureState.Primed;
+
+        if (chargeParticles && !chargeParticles.isPlaying) chargeParticles.Play();
+        if (staffGlowObject) staffGlowObject.SetActive(true);
+        if (qteCircle) qteCircle.ShowCircle();
+    }
+
+    private bool TryHandleDebugFire()
+    {
+        #if UNITY_EDITOR
+        if (Keyboard.current == null || !Keyboard.current.cKey.wasPressedThisFrame) return false;
+
+        ResolveReferences();
+
+        if (gestureState == GestureState.Idle || gestureState == GestureState.Winding)
+        {
+            EnterPrimedState();
+            Debug.Log("(MageStaff) [DEBUG]: Jumped to Primed.");
+        }
+        else if (gestureState == GestureState.Primed)
+        {
+            float power = qteCircle ? qteCircle.Power : 0f;
+            if (qteCircle) qteCircle.HideCircle();
+            FireEnergyBall(power);
+            ResetCharge();
+        }
+        else if (gestureState == GestureState.Overcharged)
+        {
+            FireOvercharge();
+            ResetCharge();
+        }
+
+        return true;
+        #else
+        return false;
+        #endif
+    }
+
     private void ResetCharge()
     {
         gestureState = GestureState.Idle;
         if (chargeParticles) chargeParticles.Stop();
         if (staffGlowObject) staffGlowObject.SetActive(false);
+        if (qteCircle) qteCircle.HideCircle();
     }
 }

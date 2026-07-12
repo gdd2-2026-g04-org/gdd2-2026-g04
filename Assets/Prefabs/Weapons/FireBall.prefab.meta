@@ -1,13 +1,9 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Prefabs/Bosses/Boss_Dragon.prefab.meta
-guid: deb4d5c85b8b566f4baa6efc9793cb81
-labels:
-- FusionPrefab
-========
-guid: d80d6c0b2d217034783db4a855a393d0
->>>>>>>> main:Assets/Prefabs/Weapons/FireBall.prefab.meta
-PrefabImporter:
-  externalObjects: {}
+guid: d427e9541d594f442acc6ac13b20177f
+timeCreated: 1526434856
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
   userData: 
   assetBundleName: 
   assetBundleVariant: 

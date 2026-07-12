@@ -33,14 +33,7 @@ public class MageBeer : MonoBehaviour
 
     private void Update()
     {
-        #if UNITY_EDITOR
-        if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
-        {
-            Debug.Log("[MageBeer] B key pressed — debug drink.");
-            TryDrink();
-            return;
-        }
-        #endif
+        if (TryHandleDebugDrink()) return;
 
         if (mana == null) mana = FindFirstObjectByType<MageMana>();
 
@@ -79,5 +72,18 @@ public class MageBeer : MonoBehaviour
         lastDrinkTime = Time.time;
 
         if (drinkParticles) drinkParticles.Play();
+    }
+
+    private bool TryHandleDebugDrink()
+    {
+        #if UNITY_EDITOR
+        if (Keyboard.current == null || !Keyboard.current.bKey.wasPressedThisFrame) return false;
+
+        Debug.Log("[MageBeer] B key pressed - debug drink.");
+        TryDrink();
+        return true;
+        #else
+        return false;
+        #endif
     }
 }
