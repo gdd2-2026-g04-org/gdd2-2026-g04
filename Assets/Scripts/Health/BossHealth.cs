@@ -97,6 +97,7 @@ namespace GameAssets.Health
     private void HandleDeath()
     {
         if (animator != null) animator.SetTrigger("Die");
+        bossAI.PlayDeathSound();
 
         if (bossAI != null) bossAI.enabled = false;
         
