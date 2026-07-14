@@ -32,6 +32,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     public int CachedRoom1Players => cachedRoom1Players;
     public int CachedRoom2Players => cachedRoom2Players;
     public bool RoomCountReady => roomCountReady;
+    public NetworkedXRAvatar LocalAvatar => localAvatar;
     
     
     private bool loadBattleRequested;
@@ -283,6 +284,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             Debug.LogError("(NetworkManager): Cannot setup arena, no PlayerSpawns instance found.");
             return;
         }
+        
+        XRReferences.Instance.DisableMovement();
 
         var playerCount = runner.ActivePlayers.Count();
         

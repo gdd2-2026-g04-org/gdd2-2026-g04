@@ -1,4 +1,5 @@
 using Fusion;
+using GameAssets.Health;
 using UnityEngine;
 
 public class NetworkedXRAvatar : NetworkBehaviour
@@ -16,13 +17,17 @@ public class NetworkedXRAvatar : NetworkBehaviour
 
     [Header("Mage Visuals")]
     [SerializeField] private GameObject mageStaffVisual;
+    [SerializeField] private GameObject mageProjectilePrefab;
+    [SerializeField] private GameObject mageOverchargePrefab;
     
     [Header("Healer Visuals")]
     [SerializeField] private GameObject HealerStaffVisual;
-    [SerializeField] private GameObject HealerBookVisual; 
+    [SerializeField] private GameObject HealerBookVisual;
+    [SerializeField] private GameObject healerProjectilePrefab;
     
     [Header("Archer Visuals")]
     [SerializeField] private GameObject archerBowVisual;
+    [SerializeField] private GameObject arrowVisualPrefab;
     
     // Networked properties that sync automatically to all players
     [Networked, OnChangedRender(nameof(OnClassChanged))]
@@ -187,6 +192,58 @@ public class NetworkedXRAvatar : NetworkBehaviour
         SetActive(HealerStaffVisual, healerActive);
         SetActive(archerBowVisual, archerActive);
     }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.Proxies)]
+    public void RPC_ArrowVisual(Vector3 position, Vector3 direction)
+    {
+        if (!arrowVisualPrefab) return;
+        
+        direction = direction.normalized;
+        
+        var arrow = Instantiate(arrowVisualPrefab, position, Quaternion.LookRotation(direction, Vector3.up));
+
+        if (arrow.TryGetComponent<Arrow>(out var a))
+        {
+            a.Initialize(direction, 45, 4);
+        }
+        else
+        {
+            Destroy(arrow);
+        }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.Proxies)]
+    public void RPC_HealerProjectileVisual(Vector3 position, Vector3 forward)
+    {
+        if (!healerProjectilePrefab) return;
+        
+        var projectile = Instantiate(healerProjectilePrefab, position, Quaternion.LookRotation(forward, Vector3.up));
+
+        if (!projectile.TryGetComponent<HealerProjectile>(out var p)) return;
+
+        var healthManager = FindFirstObjectByType<HealthSystemManager>();
+
+        var bossTarget = healthManager && healthManager.Boss ? healthManager.Boss.transform : null;
+        
+        p.Initialize(bossTarget, null, false);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.Proxies)]
+    public void RPC_MageProjectileVisual(Vector3 position, Quaternion rotation, float power, bool overCharge = false)
+    {
+        if (!mageProjectilePrefab) return;
+        
+        var healthManager = FindFirstObjectByType<HealthSystemManager>();
+        
+        var bossTarget = healthManager && healthManager.Boss ? healthManager.Boss.transform : null;
+        
+        var projectile = Instantiate(overCharge ? mageOverchargePrefab : mageProjectilePrefab, position, rotation);
+        
+        if (!projectile.TryGetComponent<MageProjectile>(out var p)) return;
+        
+        p.Initialize(bossTarget, null, power, false);
+    }
+    
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_RequestLobbyCheck()

@@ -21,16 +21,18 @@ public class HealerProjectile : MonoBehaviour
     private HealthSystemManager healthSystem;
     private Vector3 currentVelocity;
     private bool hasHit;
+    private bool dealDamage;
 
     private void Start()
     {
         currentVelocity = transform.forward * speed;
     }
 
-    public void Initialize(Transform targetBoss, HealthSystemManager manager)
+    public void Initialize(Transform targetBoss, HealthSystemManager manager, bool dealDamage)
     {
         target = targetBoss;
         healthSystem = manager;
+        this.dealDamage = dealDamage;
         Destroy(gameObject, lifetime);
     }
 
@@ -91,7 +93,7 @@ public class HealerProjectile : MonoBehaviour
         if (hasHit) return;
         hasHit = true;
 
-        if (healthSystem)
+        if (dealDamage && healthSystem)
         {
             healthSystem.ApplyDamageToBoss(damage);
             Debug.Log($"[HealerProjectile] Successfully hit the Boss and dealt {damage} damage.");

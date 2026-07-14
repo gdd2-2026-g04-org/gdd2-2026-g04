@@ -16,6 +16,8 @@ public class LobbyUI : MonoBehaviour
 
     [SerializeField] private TMP_Text playerCountText;
 
+    [SerializeField] private TMP_Text classText;
+
     private void Start()
     {
         if (!NetworkManager.Instance)
@@ -96,6 +98,7 @@ public class LobbyUI : MonoBehaviour
 
         var changed = LocalClassSelector.Instance.SelectClass(selectedClass);
         AudioManager.Instance?.PlayUISound(classSelectSound);
+        classText.text = "Class: " + selectedClass;
 
         if (changed && localReady)
         {

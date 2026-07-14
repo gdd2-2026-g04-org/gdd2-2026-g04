@@ -26,14 +26,22 @@ public class MageProjectile : MonoBehaviour
     private Vector3 currentVelocity;
     private bool hasHit;
     private int finalDamage;
+    private bool canDealDamage;
 
-    public void Initialize(Transform targetBoss, HealthSystemManager manager, float power = 0f)
+    public void Initialize(Transform targetBoss, HealthSystemManager manager, float power = 0f, bool canDealDamage = true)
     {
         target = targetBoss;
         healthSystem = manager;
+        this.canDealDamage = canDealDamage;
 
         ApplyPowerScaling(power);
 
+        if (!target)
+        {
+            Destroy(gameObject, lifetime);
+            return;
+        }
+        
         // Compute ballistic launch velocity to reach target in flightTime under gravity
         Vector3 targetPosition = target.position + targetOffset;
         Vector3 displacement = targetPosition - transform.position;
@@ -104,7 +112,7 @@ public class MageProjectile : MonoBehaviour
         if (hasHit) return;
         hasHit = true;
 
-        if (healthSystem)
+        if (canDealDamage && healthSystem)
         {
             healthSystem.ApplyDamageToBoss(finalDamage);
             Debug.Log($"[MageProjectile] Hit the Boss and dealt {finalDamage} damage.");

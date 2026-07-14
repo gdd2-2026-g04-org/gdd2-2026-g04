@@ -95,7 +95,12 @@ public class HealerStaff : MonoBehaviour
             HealerProjectile projectile = projectileObj.GetComponent<HealerProjectile>();
             if (projectile)
             {
-                projectile.Initialize(healthManager.Boss.transform, healthManager);
+                projectile.Initialize(healthManager.Boss.transform, healthManager, true);
+
+                if (NetworkManager.Instance && NetworkManager.Instance.LocalAvatar)
+                {
+                    NetworkManager.Instance.LocalAvatar.RPC_HealerProjectileVisual(projectileSpawnPoint.position, projectileSpawnPoint.forward);
+                }
             }
             else
             {

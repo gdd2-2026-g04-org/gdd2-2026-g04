@@ -23,6 +23,7 @@ public class BossAI : NetworkBehaviour
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip swipeSound;
     [SerializeField] private AudioClip aoeImpactSound;
+    [SerializeField] private AudioClip deathSound;
 
     private readonly HashSet<int> triggeredThresholds = new();
 
@@ -104,6 +105,11 @@ public class BossAI : NetworkBehaviour
         healthManager.ApplyDamageToAllPlayers(attackDamage);
         Debug.Log($"(BossAI): Swipe dealt {attackDamage} damage.");
         IsAttacking = false;
+    }
+
+    public void PlayDeathSound()
+    {
+        AudioManager.PlaySoundAtSource(deathSound, audioSource);
     }
 
     private void TryTriggerAOEAtHealthThresholds()

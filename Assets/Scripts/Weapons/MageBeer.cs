@@ -15,6 +15,8 @@ public class MageBeer : MonoBehaviour
     [Header("Visuals")]
     [SerializeField] private ParticleSystem drinkParticles;
 
+    [SerializeField] private AudioSource drinkSound;
+
     private MageMana mana;
     private float lastDrinkTime = float.NegativeInfinity;
     private float holdTimer;
@@ -71,6 +73,7 @@ public class MageBeer : MonoBehaviour
         mana.Restore(manaPerDrink);
         lastDrinkTime = Time.time;
 
+        if (drinkSound) drinkSound.Play();
         if (drinkParticles) drinkParticles.Play();
     }
 

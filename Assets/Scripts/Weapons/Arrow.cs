@@ -18,6 +18,6 @@ public class Arrow : MonoBehaviour
 
     private void Update()
     {
-        transform.position += direction * speed * Time.deltaTime;
+        transform.position += direction * (speed * Time.deltaTime);
     }
 }

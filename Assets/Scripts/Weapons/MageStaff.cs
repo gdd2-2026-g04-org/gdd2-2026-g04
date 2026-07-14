@@ -27,6 +27,10 @@ public class MageStaff : MonoBehaviour
     [SerializeField] private GameObject overchargePrefab;
     [SerializeField] private int manaPerOvercharge = 30;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource fireSound;
+    [SerializeField] private AudioSource chargeSound;
+    
     private HealthSystemManager healthManager;
     private MageMana mana;
 
@@ -73,9 +77,6 @@ public class MageStaff : MonoBehaviour
 
         bool keyboardHeld = Keyboard.current != null && Keyboard.current.mKey.isPressed;
         bool triggerHeld = keyboardHeld || (triggerAction.action != null && triggerAction.action.IsPressed());
-        #if UNITY_EDITOR
-        if (gestureState == GestureState.Primed || gestureState == GestureState.Overcharged) triggerHeld = true;
-        #endif
         if (!triggerHeld)
         {
             if (gestureState == GestureState.Primed && Time.time >= lastFireTime + fireCooldown)
@@ -97,6 +98,7 @@ public class MageStaff : MonoBehaviour
         {
             case GestureState.Idle:
                 gestureState = GestureState.Winding;
+                if (chargeSound) chargeSound.Play();
                 break;
 
             case GestureState.Winding:
@@ -108,6 +110,7 @@ public class MageStaff : MonoBehaviour
                 if (qteCircle && qteCircle.TimeOut)
                 {
                     gestureState = GestureState.Overcharged;
+                    if (chargeSound) chargeSound.Stop();
                     Debug.Log("(MageStaff): Overcharged! Throw it!");
                 }
                 break;
@@ -136,7 +139,11 @@ public class MageStaff : MonoBehaviour
 
         if (projectile)
         {
-            projectile.Initialize(healthManager.Boss.transform, healthManager, power);
+            projectile.Initialize(healthManager.Boss.transform, healthManager, power, true);
+            if (NetworkManager.Instance && NetworkManager.Instance.LocalAvatar)
+            {
+                NetworkManager.Instance.LocalAvatar.RPC_MageProjectileVisual(projectileSpawnPoint.position, projectileSpawnPoint.rotation, power);
+            }
         }
         else
         {
@@ -148,6 +155,8 @@ public class MageStaff : MonoBehaviour
             shootParticles.transform.position = projectileSpawnPoint.position;
             shootParticles.Play();
         }
+        if (chargeSound) chargeSound.Stop();
+        if (fireSound) fireSound.Play();
 
         lastFireTime = Time.time;
     }
@@ -173,10 +182,19 @@ public class MageStaff : MonoBehaviour
         GameObject obj = Instantiate(overchargePrefab, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
         MageProjectile projectile = obj.GetComponent<MageProjectile>();
         if (projectile)
+        {
             projectile.Initialize(healthManager.Boss.transform, healthManager);
+            if (NetworkManager.Instance && NetworkManager.Instance.LocalAvatar)
+            {
+                NetworkManager.Instance.LocalAvatar.RPC_MageProjectileVisual(projectileSpawnPoint.position, projectileSpawnPoint.rotation, 0.25f, true);
+            }
+        }
         else
+        {
             Debug.LogError("[MageStaff] overchargePrefab is missing MageProjectile!", overchargePrefab);
+        }
 
+        if (chargeSound) chargeSound.Stop();
         lastFireTime = Time.time;
     }
 
@@ -238,6 +256,7 @@ public class MageStaff : MonoBehaviour
     {
         gestureState = GestureState.Idle;
         if (chargeParticles) chargeParticles.Stop();
+        if (chargeSound) chargeSound.Stop();
         if (staffGlowObject) staffGlowObject.SetActive(false);
         if (qteCircle) qteCircle.HideCircle();
     }

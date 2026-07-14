@@ -273,7 +273,7 @@ public class BowController : MonoBehaviour
         if (!arrowPrefab || !drawnArrow) return;
 
         var dir = AimDirection.normalized;
-
+        
         var arrow = Instantiate(arrowPrefab, drawnArrow.position, Quaternion.LookRotation(AimDirection, Vector3.up));
 
         if (arrow.TryGetComponent(out Arrow arrowScript))
@@ -285,6 +285,11 @@ public class BowController : MonoBehaviour
         else
         {
             Destroy(arrow, arrowLifetime);
+        }
+        
+        if (NetworkManager.Instance && NetworkManager.Instance.LocalAvatar)
+        {
+            NetworkManager.Instance.LocalAvatar.RPC_ArrowVisual(drawnArrow.position, dir);
         }
         
         drawnArrow.gameObject.SetActive(false);
