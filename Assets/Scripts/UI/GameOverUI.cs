@@ -11,6 +11,9 @@ public class GameOverUI : MonoBehaviour
 
     [SerializeField] private float fadeDuration = 1.5f;
 
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip victorySound;
+    [SerializeField] private AudioClip defeatSound;
     private Coroutine fadeCoroutine;
     private void Awake()
     {
@@ -26,6 +29,11 @@ public class GameOverUI : MonoBehaviour
         
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
 
+        if (audioSource)
+        {
+            audioSource.PlayOneShot(victory ? victorySound : defeatSound);
+        }
+        
         fadeCoroutine = StartCoroutine(FadeGameOver());
     }
 
