@@ -3007,7 +3007,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &355960080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3414,6 +3414,7 @@ MonoBehaviour:
   offset: {x: -0.55, y: -0.6, z: 0}
   smoothTime: 0.15
   smoothSpeed: 8
+  useOtherCamera: 0
 --- !u!1001 &394396598
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6173,6 +6174,7 @@ MonoBehaviour:
   offset: {x: 0, y: 0.5, z: -0.5}
   smoothTime: 0.5
   smoothSpeed: 10
+  useOtherCamera: 1
 --- !u!114 &679428539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12750,6 +12752,7 @@ MonoBehaviour:
   offset: {x: -0.55, y: -0.5, z: 0}
   smoothTime: 0.15
   smoothSpeed: 8
+  useOtherCamera: 0
 --- !u!114 &1448190996
 MonoBehaviour:
   m_ObjectHideFlags: 0

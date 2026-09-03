@@ -11,6 +11,8 @@ public class SmoothHUDFollow : MonoBehaviour
     [SerializeField] private float smoothTime = 0.15f;
     [SerializeField] private float smoothSpeed = 8f;
 
+    [SerializeField] private bool useOtherCamera;
+    
     private Vector3 velocity;
 
     private void Start()
@@ -18,7 +20,8 @@ public class SmoothHUDFollow : MonoBehaviour
         vrCamera = Camera.main?.transform;
         if (TryGetComponent(out Canvas c))
         {
-            c.worldCamera = Camera.main;
+            var main = Camera.main;
+            c.worldCamera = useOtherCamera ? main?.GetComponentInChildren<DeathCamMarker>().GetComponent<Camera>() : main;
         }
     }
 
