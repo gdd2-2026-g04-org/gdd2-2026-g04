@@ -89,7 +89,7 @@ public class GameOverUI : MonoBehaviour
         NetworkManager.Instance.ReturnToMainMenu();
     }
 
-    public void RestartGame()
+    public void ReturnToLobby()
     {
         if (NetworkManager.Instance == null)
         {
@@ -97,7 +97,7 @@ public class GameOverUI : MonoBehaviour
             return;
         }
         
-        NetworkManager.Instance.RequestBattleRestart();
+        NetworkManager.Instance.RequestReturnToLobby();
     }
 
     public void ExitGame()

@@ -14,7 +14,24 @@ public class XRReferences : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+    }
+    
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
+    public void ResetTransform()
+    {
+        transform.position = Vector3.zero;
+        transform.rotation = Quaternion.Euler(Vector3.zero);
     }
 
     public void EnableMovement()

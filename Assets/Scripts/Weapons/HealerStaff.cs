@@ -32,20 +32,24 @@ public class HealerStaff : MonoBehaviour
 
     private void OnEnable()
     {
-        if (triggerAction.action != null) triggerAction.action.Enable();
         healthManager = FindFirstObjectByType<HealthSystemManager>();
         ResetCharge();
     }
 
     private void OnDisable()
     {
-        if (triggerAction.action != null) triggerAction.action.Disable();
         ResetCharge();
     }
 
     private void Update()
     {
         if (healthManager == null || healthManager.Boss == null) return;
+
+        if (!CanAct())
+        {
+            ResetCharge();
+            return;
+        }
 
         bool triggerHeld = triggerAction.action != null && triggerAction.action.ReadValue<float>() > 0.5f;
 
@@ -89,6 +93,8 @@ public class HealerStaff : MonoBehaviour
 
     private void FireEnergyBall()
     {
+        if (!CanAct()) return;
+        
         if (energyBallPrefab && projectileSpawnPoint)
         {
             GameObject projectileObj = Instantiate(energyBallPrefab, projectileSpawnPoint.position, projectileSpawnPoint.rotation);
@@ -124,5 +130,16 @@ public class HealerStaff : MonoBehaviour
         if (chargeParticles) chargeParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (staffGlowObject) staffGlowObject.SetActive(false);
         audioSource.Stop();
+    }
+    
+    private PlayerHealth playerHealth;
+    
+    private bool CanAct()
+    {
+        if (!playerHealth && NetworkManager.Instance)
+        {
+            playerHealth = NetworkManager.Instance.LocalPlayerHealth;
+        }
+        return playerHealth && playerHealth.IsAlive;
     }
 }

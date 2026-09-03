@@ -107,6 +107,12 @@ public class BowController : MonoBehaviour
 
     private void Update()
     {
+        if (!CanAct())
+        {
+            ResetBow();
+            return;
+        }
+        
         if (!input || !input.IsAvailable || !aimLine || !qteCircle) return;
         
         if (!healthManager || !playerHealth) ResolveReferences();
@@ -309,6 +315,8 @@ public class BowController : MonoBehaviour
 
         if (!boss || !boss.IsSpawned || !boss.IsAlive) return;
 
+        if (!CanAct()) return;
+        
         var damage = weapon.damage + playerHealth.Damage;
         
         healthManager.ApplyDamageToBoss(damage);
@@ -343,4 +351,12 @@ public class BowController : MonoBehaviour
         }
     }
 
+    private bool CanAct()
+    {
+        if (!playerHealth && NetworkManager.Instance)
+        {
+            playerHealth = NetworkManager.Instance.LocalPlayerHealth;
+        }
+        return playerHealth && playerHealth.IsAlive;
+    }
 }

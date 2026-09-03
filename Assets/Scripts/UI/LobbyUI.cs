@@ -27,7 +27,7 @@ public class LobbyUI : MonoBehaviour
             return;
         }
         
-        EventSystem.current.SetSelectedGameObject(null);
+        if (EventSystem.current) EventSystem.current.SetSelectedGameObject(null);
 
         NetworkManager.Instance.LobbyStatusChanged += UpdatePlayerCount;
         

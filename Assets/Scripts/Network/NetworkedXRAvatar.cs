@@ -138,17 +138,17 @@ public class NetworkedXRAvatar : NetworkBehaviour
         RPC_RequestLobbyCheck();
     }
 
-    public void RequestBattleRestart()
+    public void RequestReturnToLobby()
     {
         if (!Object.HasStateAuthority) return;
 
-        RPC_RequestBattleRestart();
+        RPC_RequestReturnToLobby();
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_RequestBattleRestart()
+    private void RPC_RequestReturnToLobby()
     {
-        if (Runner.IsSceneAuthority) NetworkManager.Instance?.RestartBattle();
+        if (Runner.IsSceneAuthority) NetworkManager.Instance?.ReturnToLobby();
     }
 
     private void OnClassChanged()
@@ -259,4 +259,9 @@ public class NetworkedXRAvatar : NetworkBehaviour
         if (target != null && target.activeSelf != active) target.SetActive(active);
     }
 
+    public void ResetLobbyState()
+    {
+        if (!Object.HasStateAuthority) return;
+        IsReady = false;
+    }
 }

@@ -23,13 +23,11 @@ public class MageBeer : MonoBehaviour
 
     private void OnEnable()
     {
-        if (triggerAction.action != null) triggerAction.action.Enable();
         mana = FindFirstObjectByType<MageMana>();
     }
 
     private void OnDisable()
     {
-        if (triggerAction.action != null) triggerAction.action.Disable();
         holdTimer = 0f;
     }
 

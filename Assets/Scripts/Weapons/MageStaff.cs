@@ -45,7 +45,6 @@ public class MageStaff : MonoBehaviour
 
     private void OnEnable()
     {
-        if (triggerAction.action != null) triggerAction.action.Enable();
         healthManager = FindFirstObjectByType<HealthSystemManager>();
         mana = FindFirstObjectByType<MageMana>();
         ResetCharge();
@@ -55,7 +54,6 @@ public class MageStaff : MonoBehaviour
 
     private void OnDisable()
     {
-        if (triggerAction.action != null) triggerAction.action.Disable();
         ResetCharge();
     }
 
@@ -65,6 +63,12 @@ public class MageStaff : MonoBehaviour
 
         ResolveReferences();
         UpdateAim();
+
+        if (!CanAct())
+        {
+            ResetCharge();
+            return;
+        }
 
         if (healthManager == null || healthManager.Boss == null)
         {
@@ -122,6 +126,8 @@ public class MageStaff : MonoBehaviour
 
     private void FireEnergyBall(float power = 0f)
     {
+        if (!CanAct()) return;
+        
         if (healthManager == null || healthManager.Boss == null)
         {
             Debug.LogWarning("[MageStaff] Can't fire — no boss in scene.");
@@ -163,6 +169,8 @@ public class MageStaff : MonoBehaviour
 
     private void FireOvercharge()
     {
+        if (!CanAct()) return;
+        
         if (overchargePrefab == null)
         {
             Debug.LogWarning("[MageStaff] No overcharge prefab assigned.");
@@ -259,5 +267,16 @@ public class MageStaff : MonoBehaviour
         if (chargeSound) chargeSound.Stop();
         if (staffGlowObject) staffGlowObject.SetActive(false);
         if (qteCircle) qteCircle.HideCircle();
+    }
+
+    private PlayerHealth playerHealth;
+    
+    private bool CanAct()
+    {
+        if (!playerHealth && NetworkManager.Instance)
+        {
+            playerHealth = NetworkManager.Instance.LocalPlayerHealth;
+        }
+        return playerHealth && playerHealth.IsAlive;
     }
 }

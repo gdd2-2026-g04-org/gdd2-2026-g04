@@ -42,7 +42,6 @@ public class HealerBook : MonoBehaviour
 
     private void OnEnable()
     {
-        if (triggerAction.action != null) triggerAction.action.Enable();
         healthManager = FindFirstObjectByType<HealthSystemManager>();
         
         if (trailRenderer)
@@ -54,7 +53,6 @@ public class HealerBook : MonoBehaviour
 
     private void OnDisable()
     {
-        if (triggerAction.action != null) triggerAction.action.Disable();
         ResetDrawing();
     }
 
@@ -62,6 +60,12 @@ public bool ForceTriggerActive { get; set; }
 
     private void Update()
     {
+        if (!CanAct())
+        {
+            if (isDrawing) ResetDrawing();
+            return;
+        }
+        
         if (Time.time < lastHealTime + healCooldown)
         {
             if (isDrawing) ResetDrawing();
@@ -208,6 +212,8 @@ public bool ForceTriggerActive { get; set; }
     {
         ResetDrawing();
 
+        if (!CanAct()) return;
+        
         if (!healthManager) healthManager = FindFirstObjectByType<HealthSystemManager>();
         
         healthManager.HealAllPlayers(healAmount);
@@ -223,5 +229,16 @@ public bool ForceTriggerActive { get; set; }
         }
         
         Debug.Log($"(HealerBook): Restored {healAmount} HP to all party members.");
+    }
+
+    private PlayerHealth playerHealth;
+    
+    private bool CanAct()
+    {
+        if (!playerHealth && NetworkManager.Instance)
+        {
+            playerHealth = NetworkManager.Instance.LocalPlayerHealth;
+        }
+        return playerHealth && playerHealth.IsAlive;
     }
 }

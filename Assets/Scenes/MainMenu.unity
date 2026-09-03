@@ -3881,6 +3881,7 @@ MonoBehaviour:
   networkRunnerPrefab: {fileID: 1823923279288368606, guid: fbb0af1ae7cf0b94d8c5e53003f909b0, type: 3}
   playerPrefab:
     RawGuidValue: 56d54adeff534fc489cb5cb66aff5dfd
+  rootPrefab: {fileID: 3315077600311529931, guid: e4471ba4d5813664686643a633cce4dd, type: 3}
   lobbySceneName: LobbyScene
   battleSceneName: NetworkScene
   minimumPlayersToStart: 1

@@ -14,6 +14,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     
     [SerializeField] private NetworkRunner networkRunnerPrefab;
     [SerializeField] private NetworkPrefabRef playerPrefab;
+    [SerializeField] private GameObject rootPrefab;
 
     [Header("Scenes")]
     [SerializeField] private string lobbySceneName = "LobbyScene";
@@ -102,6 +103,12 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         
         runner.AddCallbacks(this);
         runner.ProvideInput = true;
+    }
+
+    private void SpawnRootIfNecessary()
+    {
+        if (XRReferences.Instance) return;
+        Instantiate(rootPrefab);
     }
 
     public void JoinRoom1()
@@ -218,8 +225,14 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         LoadBattleScene();
     }
 
+    private bool returningToMainMenu;
+    
     public async void ReturnToMainMenu()
     {
+        if (returningToMainMenu) return;
+
+        returningToMainMenu = true;
+        
         loadBattleRequested = false;
         checkLobbyRequested = false;
         spawnLocalPlayer = false;
@@ -237,6 +250,8 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         if (XRReferences.Instance) Destroy(XRReferences.Instance.gameObject);
 
         SceneManager.LoadScene(0);
+
+        returningToMainMenu = false;
     }
 
     private void LoadBattleScene()
@@ -251,7 +266,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         runner.LoadScene(SceneRef.FromIndex(2), LoadSceneMode.Single);
     }
     
-    public void RequestBattleRestart()
+    public void RequestReturnToLobby()
     {
         if (!localAvatar)
         {
@@ -259,16 +274,16 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             return;
         }
 
-        localAvatar.RequestBattleRestart();
+        localAvatar.RequestReturnToLobby();
     }
 
-    public void RestartBattle()
+    public void ReturnToLobby()
     {
         if (!runner || !runner.IsRunning || !runner.IsSceneAuthority || loadBattleRequested) return;
 
         loadBattleRequested = true;
 
-        runner.LoadScene(SceneRef.FromIndex(2), LoadSceneMode.Single);
+        runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
     }
 
     private IEnumerator SetupArenaDelay()
@@ -463,6 +478,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         LocalPlayerHealth = null;
         
         loadBattleRequested = false;
+        returningToMainMenu = false;
         checkLobbyRequested = false;
         spawnLocalPlayer = false;
         joiningRoom = false;
@@ -496,6 +512,20 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         loadBattleRequested = false;
 
         TrySpawnLocalPlayer();
+
+        if (SceneManager.GetActiveScene().name == lobbySceneName)
+        {
+            SpawnRootIfNecessary();
+            
+            XRReferences.Instance?.EnableMovement();
+            
+            XRReferences.Instance?.ResetTransform();
+            
+            if (localAvatar) localAvatar.ResetLobbyState();
+
+            CheckLobbyStatus();
+            return;
+        }
         
         if (SceneManager.GetActiveScene().name == battleSceneName)
         {

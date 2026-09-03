@@ -81,6 +81,12 @@ public class SwordTrail : MonoBehaviour
   {
       if (!weapon || !trailRenderer) return;
 
+      if (!CanAct())
+      {
+        if (trailRenderer) trailRenderer.emitting = false;
+        return;
+      }
+      
       var deltaTime = Time.deltaTime;
       if (deltaTime <= 0f) return;
 
@@ -187,6 +193,15 @@ public class SwordTrail : MonoBehaviour
   {
     AudioManager.PlaySoundAtSource(swingSounds[swingIdx++], audioSource);
     if (swingIdx >= swingSounds.Length) swingIdx = 0;
+  }
+  
+  private bool CanAct()
+  {
+    if (!playerHealth && NetworkManager.Instance)
+    {
+      playerHealth = NetworkManager.Instance.LocalPlayerHealth;
+    }
+    return playerHealth && playerHealth.IsAlive;
   }
 }
 }
