@@ -28,10 +28,14 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private int maxPlayers = 4;
     private int cachedRoom1Players;
     private int cachedRoom2Players;
+    private bool cachedRoom1Open;
+    private bool cachedRoom2Open;
     private bool roomCountReady;
 
     public int CachedRoom1Players => cachedRoom1Players;
     public int CachedRoom2Players => cachedRoom2Players;
+    public bool CachedRoom1Open => cachedRoom1Open;
+    public bool CachedRoom2Open => cachedRoom2Open;
     public bool RoomCountReady => roomCountReady;
     public NetworkedXRAvatar LocalAvatar => localAvatar;
     
@@ -42,7 +46,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     private bool joiningRoom;
 
     public event Action<int, int> LobbyStatusChanged;
-    public event Action<int, int> RoomCountChanged;
+    public event Action<int, bool, int, bool> RoomStatusChanged;
     public event Action<string> RoomJoinFailed;
 
     private const string Room1Name = "Room1";
@@ -263,6 +267,9 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         
         Debug.Log($"All {runner.ActivePlayers.Count()} connected players " + "are ready. Loading battle scene.");
 
+        runner.SessionInfo.IsOpen = false;
+        runner.SessionInfo.IsVisible = true;
+
         runner.LoadScene(SceneRef.FromIndex(2), LoadSceneMode.Single);
     }
     
@@ -282,6 +289,9 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         if (!runner || !runner.IsRunning || !runner.IsSceneAuthority || loadBattleRequested) return;
 
         loadBattleRequested = true;
+
+        runner.SessionInfo.IsOpen = true;
+        runner.SessionInfo.IsVisible = true;
 
         runner.LoadScene(SceneRef.FromIndex(1), LoadSceneMode.Single);
     }
@@ -459,17 +469,32 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         var room1Players = 0;
         var room2Players = 0;
 
+        bool room1Open = true;
+        bool room2Open = true;
+
         foreach (var session in sessionList)
         {
-            if (session.Name == Room1Name) room1Players = session.PlayerCount;
-            if (session.Name == Room2Name) room2Players = session.PlayerCount;
+            if (session.Name == Room1Name)
+            {
+                room1Players = session.PlayerCount;
+                room1Open = session.IsOpen;
+            }
+
+            if (session.Name == Room2Name)
+            {
+                room2Players = session.PlayerCount;
+                room2Open = session.IsOpen;
+            }
         }
 
         cachedRoom1Players = room1Players;
         cachedRoom2Players = room2Players;
+
+        cachedRoom1Open = room1Open;
+        cachedRoom2Open = room2Open;
         roomCountReady = true;
         
-        RoomCountChanged?.Invoke(room1Players, room2Players);
+        RoomStatusChanged?.Invoke(room1Players, room1Open, room2Players, room2Open);
     }
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
@@ -486,7 +511,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
         if (this.runner == runner) this.runner = null;
         
         LobbyStatusChanged?.Invoke(0, 0);
-        RoomCountChanged?.Invoke(0, 0);
+        RoomStatusChanged?.Invoke(0, true, 0, true);
     }
 
     public void OnConnectedToServer(NetworkRunner runner) {}
@@ -523,6 +548,12 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             
             if (localAvatar) localAvatar.ResetLobbyState();
 
+            if (runner.IsSceneAuthority)
+            {
+                runner.SessionInfo.IsOpen = true;
+                runner.SessionInfo.IsVisible = true;
+            }
+            
             CheckLobbyStatus();
             return;
         }
@@ -533,6 +564,12 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             
             LocalPlayerHealth?.ResetHealth();
             ResetPlayerMana();
+            
+            if (runner.IsSceneAuthority)
+            {
+                runner.SessionInfo.IsOpen = false;
+                runner.SessionInfo.IsVisible = true;
+            }
         }
         
         CheckLobbyStatus();

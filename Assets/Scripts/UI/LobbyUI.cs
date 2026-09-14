@@ -85,6 +85,17 @@ public class LobbyUI : MonoBehaviour
         
         Debug.Log($"Local ready state: {localReady}");
     }
+
+    public void LeaveToMainMenu()
+    {
+        if (!NetworkManager.Instance)
+        {
+            Debug.LogError("(LobbyUI): NetworkManager is null!");
+            return;
+        }
+        
+        NetworkManager.Instance.ReturnToMainMenu();
+    }
     
     
 

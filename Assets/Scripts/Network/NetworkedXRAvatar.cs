@@ -262,6 +262,9 @@ public class NetworkedXRAvatar : NetworkBehaviour
     public void ResetLobbyState()
     {
         if (!Object.HasStateAuthority) return;
+        SelectedClass = PlayerClass.None;
         IsReady = false;
+        
+        ApplyClassVisuals();
     }
 }
