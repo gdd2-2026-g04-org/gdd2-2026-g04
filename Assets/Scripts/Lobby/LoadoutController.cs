@@ -14,6 +14,7 @@ public class LoadoutController : MonoBehaviour
     [SerializeField] private GameObject archerBow;
 
     [Header("Scene")] [SerializeField] private string battleSceneName = "NetworkScene";
+    [SerializeField] private string lobbySceneName = "LobbyScene";
 
     [SerializeField] private PlayerClass selectedClass = PlayerClass.None;
     private bool isBattleScene;
@@ -52,6 +53,7 @@ public class LoadoutController : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         UpdateSceneState(scene);
+        if (scene.name == lobbySceneName) LocalClassSelector.Instance.ClearSelection();
         ApplyLoadout();
     }
 

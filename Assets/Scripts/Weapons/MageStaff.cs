@@ -30,6 +30,7 @@ public class MageStaff : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private AudioSource fireSound;
     [SerializeField] private AudioSource chargeSound;
+    [SerializeField] private AudioSource failSound;
     
     private HealthSystemManager healthManager;
     private MageMana mana;
@@ -203,6 +204,7 @@ public class MageStaff : MonoBehaviour
         }
 
         if (chargeSound) chargeSound.Stop();
+        if (failSound) failSound.Play();
         lastFireTime = Time.time;
     }
 
