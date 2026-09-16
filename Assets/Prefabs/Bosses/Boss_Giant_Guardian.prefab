@@ -6603,6 +6603,10 @@ MonoBehaviour:
   _MaxHP: 0
   _CurrentHP: 0
   data: {fileID: 11400000, guid: d9e6d6efc6a043f42887064358883af4, type: 2}
+  hurtSounds:
+  - {fileID: 8300000, guid: 57bc63b6f14005144bd60d6b986a0131, type: 3}
+  - {fileID: 8300000, guid: 5ece425dade6a6445a6df025de4d3dfc, type: 3}
+  - {fileID: 8300000, guid: 0170e445975c68b4098ff98d2eef2e74, type: 3}
 --- !u!114 &8050029525870870413
 MonoBehaviour:
   m_ObjectHideFlags: 0

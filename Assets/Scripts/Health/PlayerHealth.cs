@@ -2,6 +2,7 @@ using System;
 using Fusion;
 using GameAssets.Player;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace GameAssets.Health
 {
@@ -18,7 +19,8 @@ namespace GameAssets.Health
 
         [Header("Audio")]
         [SerializeField] private AudioSource audioSource;
-        [SerializeField] private AudioClip hurtSound;
+        [SerializeField] private AudioClip[] hurtSounds;
+        [SerializeField] private AudioClip[] deathSounds;
         
         [Networked]
         public int Damage { get; private set; }
@@ -123,7 +125,7 @@ namespace GameAssets.Health
             }
             else
             {
-                AudioManager.PlaySoundAtSource(hurtSound, audioSource);
+                AudioManager.PlaySoundAtSource(hurtSounds[Random.Range(0, hurtSounds.Length)], audioSource);
             }
             
             var damaged = ApplyDamage(damage);
@@ -131,6 +133,7 @@ namespace GameAssets.Health
             if (damaged && !IsAlive)
             {
                 Debug.Log($"{name}: Player died!");
+                AudioManager.PlaySoundAtSource(deathSounds[Random.Range(0, deathSounds.Length)], audioSource);
             }
         }
 

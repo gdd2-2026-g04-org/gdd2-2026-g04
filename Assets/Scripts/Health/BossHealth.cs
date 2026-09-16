@@ -2,6 +2,7 @@ using System;
 using Fusion;
 using UnityEngine;
 using System.Linq;
+using Random = UnityEngine.Random;
 
 namespace GameAssets.Health
 {
@@ -12,10 +13,18 @@ namespace GameAssets.Health
     private Animator animator;
     private BossAI bossAI;
     private HealthSystemManager healthManager;
+    private AudioSource _audioSource;
+    
+    [SerializeField] private AudioClip[] hurtSounds;
 
     public BossData Data => data;
 
     public event Action OnBossDefeated;
+
+    private void Awake()
+    {
+        _audioSource = GetComponent<AudioSource>();
+    }
 
     protected override int GetStartingMaxHP()
     {
@@ -60,6 +69,8 @@ namespace GameAssets.Health
     {
         if (damage <= 0) return;
 
+        AudioManager.PlaySoundAtSource(hurtSounds[Random.Range(0, hurtSounds.Length)], _audioSource);
+        
         if (Object.HasStateAuthority)
         {
             ApplyDamage(damage);
@@ -93,7 +104,7 @@ namespace GameAssets.Health
     {
         ApplyHealing(heal);
     }
-
+    
     private void HandleDeath()
     {
         if (animator != null) animator.SetTrigger("Die");

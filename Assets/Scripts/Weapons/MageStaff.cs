@@ -20,12 +20,12 @@ public class MageStaff : MonoBehaviour
     [SerializeField] private GameObject staffGlowObject;
 
     [Header("Mana")]
-    [SerializeField] private int manaPerShot = 15;
+    [SerializeField] private int manaPerShot = 35;
 
     [Header("Overcharge")]
     [SerializeField] private MageQTECircleController qteCircle;
     [SerializeField] private GameObject overchargePrefab;
-    [SerializeField] private int manaPerOvercharge = 30;
+    [SerializeField] private int manaPerOvercharge = 60;
 
     [Header("Audio")]
     [SerializeField] private AudioSource fireSound;
@@ -279,6 +279,6 @@ public class MageStaff : MonoBehaviour
         {
             playerHealth = NetworkManager.Instance.LocalPlayerHealth;
         }
-        return playerHealth && playerHealth.IsAlive;
+        return playerHealth && playerHealth.IsAlive && healthManager.Boss.IsAlive;
     }
 }

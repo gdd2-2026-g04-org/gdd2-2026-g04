@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +17,10 @@ public class TutorialTable : MonoBehaviour
         {
             LocalClassSelector.Instance.ClassChanged += UpdateTutorialImage;
         }
+        else
+        {
+            StartCoroutine(RetryStart());
+        }
     }
 
     private void OnDisable()
@@ -29,6 +34,15 @@ public class TutorialTable : MonoBehaviour
     private void ToggleTutorial(bool b)
     {
         tutorialImage.gameObject.SetActive(b);
+    }
+
+    private IEnumerator RetryStart()
+    {
+        while (!LocalClassSelector.Instance)
+        {
+            yield return new WaitForSeconds(1f);
+            if (LocalClassSelector.Instance) LocalClassSelector.Instance.ClassChanged += UpdateTutorialImage;
+        }
     }
 
     private void UpdateTutorialImage(PlayerClass c)

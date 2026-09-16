@@ -4478,6 +4478,10 @@ MonoBehaviour:
   _MaxHP: 0
   _CurrentHP: 0
   data: {fileID: 11400000, guid: d9e6d6efc6a043f42887064358883af4, type: 2}
+  hurtSounds:
+  - {fileID: 8300000, guid: 2347e48761256504b9901c804c6f92b0, type: 3}
+  - {fileID: 8300000, guid: 9aca976d34c0eda4385c3e4fdd66a078, type: 3}
+  - {fileID: 8300000, guid: 1c39178c0923a484f947320fcaf95899, type: 3}
 --- !u!114 &4696379840325911297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4499,6 +4503,7 @@ MonoBehaviour:
   audioSource: {fileID: 3285675568708028320}
   swipeSound: {fileID: 8300000, guid: 4fdf78133660fab8b986e2d6808df4db, type: 3}
   aoeImpactSound: {fileID: 8300000, guid: 58080ebaec70d84aa9544591a24549e8, type: 3}
+  deathSound: {fileID: 8300000, guid: 3d39e9764d4c42045aff04e15c64ae19, type: 3}
   _IsAttacking:
     _value: 0
   _EncounterOver:
@@ -4529,7 +4534,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 6886142615395728320, guid: 015c08cbef919f24b9821b8a0d10d33f, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0

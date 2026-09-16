@@ -357,6 +357,6 @@ public class BowController : MonoBehaviour
         {
             playerHealth = NetworkManager.Instance.LocalPlayerHealth;
         }
-        return playerHealth && playerHealth.IsAlive;
+        return playerHealth && playerHealth.IsAlive && healthManager.Boss.IsAlive;
     }
 }

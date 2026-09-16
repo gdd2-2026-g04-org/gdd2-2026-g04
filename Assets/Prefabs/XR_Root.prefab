@@ -40640,10 +40640,10 @@ MonoBehaviour:
   chargeParticles: {fileID: 6128415839633816208}
   shootParticles: {fileID: 135425560646648363}
   staffGlowObject: {fileID: 5974390697711597865}
-  manaPerShot: 15
+  manaPerShot: 35
   qteCircle: {fileID: 815498588699738695}
   overchargePrefab: {fileID: 2747937604460795102, guid: deb4d5c85b8b566f4baa6efc9793cb81, type: 3}
-  manaPerOvercharge: 30
+  manaPerOvercharge: 50
   fireSound: {fileID: 7142496864380640694}
   chargeSound: {fileID: 4049093781156589036}
   failSound: {fileID: 1823861940205396004}
@@ -41589,6 +41589,7 @@ MonoBehaviour:
   healerBook: {fileID: 5465352671398747488}
   archerBow: {fileID: 1708362530441485039}
   battleSceneName: NetworkScene
+  lobbySceneName: LobbyScene
   selectedClass: 0
 --- !u!114 &1143021588772299446
 MonoBehaviour:
@@ -42692,6 +42693,10 @@ PrefabInstance:
       propertyPath: OutputAudioMixerGroup
       value: 
       objectReference: {fileID: 6886142615395728320, guid: 015c08cbef919f24b9821b8a0d10d33f, type: 2}
+    - target: {fileID: 7039416248487302238, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
+      propertyPath: panLevelCustomCurve.m_Curve.Array.data[0].value
+      value: 0.75
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 4716271009376777002, guid: 4dcf16324106f464d874231b7a71b967, type: 3}
