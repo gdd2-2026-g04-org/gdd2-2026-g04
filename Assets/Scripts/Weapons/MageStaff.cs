@@ -31,6 +31,7 @@ public class MageStaff : MonoBehaviour
     [SerializeField] private AudioSource fireSound;
     [SerializeField] private AudioSource chargeSound;
     [SerializeField] private AudioSource failSound;
+    [SerializeField] private AudioClip noManaSound;
     
     private HealthSystemManager healthManager;
     private MageMana mana;
@@ -138,6 +139,7 @@ public class MageStaff : MonoBehaviour
         if (mana != null && !mana.TrySpend(manaPerShot))
         {
             Debug.LogWarning("[MageStaff] Not enough mana.");
+            AudioManager.PlaySoundAtSource(noManaSound, fireSound);
             return;
         }
 
@@ -185,6 +187,7 @@ public class MageStaff : MonoBehaviour
         if (mana != null && !mana.TrySpend(manaPerOvercharge))
         {
             Debug.LogWarning("[MageStaff] Not enough mana for overcharge.");
+            AudioManager.PlaySoundAtSource(noManaSound, fireSound);
             return;
         }
 

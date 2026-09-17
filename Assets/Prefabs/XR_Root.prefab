@@ -40647,6 +40647,7 @@ MonoBehaviour:
   fireSound: {fileID: 7142496864380640694}
   chargeSound: {fileID: 4049093781156589036}
   failSound: {fileID: 1823861940205396004}
+  noManaSound: {fileID: 8300000, guid: aede287ea3204d24bb3c2d6fe9624a42, type: 3}
 --- !u!114 &815498588699738695
 MonoBehaviour:
   m_ObjectHideFlags: 0
